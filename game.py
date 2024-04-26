@@ -143,8 +143,9 @@ for x in range(2):
         yOffset = y +offset[1]
         name = "lake" + str(xOffset) + str(yOffset)
         if name == "lake67" or name == "lake57":
-            bridge = gameObject(xOffset,yOffset,name,"🟦", places["outside"])
-        lake = gameObject(xOffset,yOffset,name,"🟦", places["outside"])
+            bridge = gameObject(xOffset,yOffset,name,"🟫", places["outside"])
+        else:
+            lake = gameObject(xOffset,yOffset,name,"🟦", places["outside"])
 
 
 
