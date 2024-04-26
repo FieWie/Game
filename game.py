@@ -127,10 +127,13 @@ barn = gameObject(4, 3, "barn", "👦", places["outside"])
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
-for x in grid_size:
-    for y in range(6):
+for x in range(2):
+    for y in range(9):
         name = "lake" +str(x + y)
-        lake = gameObject(x,y,name, )
+        offset = [ ]
+        xOffset = x +
+
+        lake = gameObject(x,y,name,"🟦", places["outside"])
 
 
 def main():
