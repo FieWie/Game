@@ -164,7 +164,6 @@ enemy = Enemy(3, 3, "enemy", "🦧", places["outside"])
 chest = Chest(8, 0, "chest", "💾", places["house"])
 player = Player(4, 5, "player", "✳️ ", places["house"])
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
-lake = gameObject()
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
