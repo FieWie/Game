@@ -3,7 +3,6 @@ import time
 
 grid_size = 9
 
-
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -25,12 +24,13 @@ class Place:
         return self.objects
 
 class gameObject:
-    def __init__(self, x, y, name, emoji, place):
+    def __init__(self, x, y, name, emoji, place, sortlayer = 1):
         self.x = x
         self.y = y
         self.name = name
         self.emoji = emoji
         self.place = place
+        self.sortlayer = sortlayer
 
         place.addObject(self)
         
@@ -56,7 +56,7 @@ class gameObject:
 
 class Link(gameObject):
     def __init__(self, x, y, name, emoji, place,destination = Place):
-        super().__init__(x, y, name, emoji, place)
+        super().__init__(x, y, name, emoji, place,1)
         self.destination = destination
 
     def interact(self):
@@ -71,10 +71,9 @@ class Link(gameObject):
         print(currentPlace.description)
 
 class Player(gameObject):
-    def __init__(self, x, y, name, emoji, place):
-        super().__init__(x, y, name, emoji, place)
-        # Additional player-specific attributes or methods can be added here
-    
+    def __init__(self, x, y, name, emoji, place, sortlayer):
+        super().__init__(x, y, name, emoji, place,sortlayer)
+
     def check_collision(self,x, y):
         for obj in currentPlace.getObjects():
             if obj.getPosition() == [x, y]:
@@ -88,32 +87,35 @@ class Player(gameObject):
             return False
 
         x, y = player.getPosition()
+        newX,newY = x,y
+        print(newX, newY)
         if move == "w" and x > 0:
-            x -= 1
+            newX -= 1
         elif move == "s" and x < grid_size - 1:
-            x += 1
+            newX += 1
         elif move == "a" and y > 0:
-            y -= 1
+            newY -= 1
         elif move == "d" and y < grid_size - 1:
-            y += 1
+            newY += 1
 
-        #If go through door
-
-        self.setPosition(x, y)
-
-        collided_obj = self.check_collision(x,y)
+        collided_obj = self.check_collision(newX,newY)
         if collided_obj:
             # Handle collision based on object type
             if isinstance(collided_obj, Link):
                 collided_obj.interact()
             elif isinstance(collided_obj, Enemy):
                 print("You encountered an enemy!")
-                self.FightEnemy()
-            elif isinstance(collided_obj, Chest):
+                if not self.FightEnemy():
+                    newX, newY = x,y
+            elif isinstance(collided_obj, Lake):
                 print("You found a chest!")
+            elif isinstance(collided_obj, Bridge):
+                print("You walk on Bridge")
+                player.setPosition(newX, newY)
+
 
         else:
-            player.setPosition(x, y)
+            player.setPosition(newX, newY)
         return True
 
     def FightEnemy(self):
@@ -122,7 +124,7 @@ class Player(gameObject):
             time.sleep(2)
             print("roll for damage")
             resulat = random.randint(1, 20)
-            print(f"Dice {i+1}: {resulat}")
+            print(f"Dice {1}: {resulat}")
             time.sleep(2)
 
             if(resulat > 10):
@@ -137,10 +139,11 @@ class Player(gameObject):
                 print("you died")
                 print_grid()
                 exit()
+            return True
                 
         elif fight == "no":
-    
-            print("nice")    
+            print("nice")  
+            return False  
 
 
 
@@ -155,27 +158,36 @@ class Chest(gameObject):
     def __init__(self, x, y, name, emoji, place):
         super().__init__(x, y, name, emoji, place)
         # Additional enemy-specific attributes or methods can be added here
+class Bridge(gameObject):
+    def __init__(self, x, y, name, emoji, place):
+        super().__init__(x, y, name, emoji, place)
+        # Additional enemy-specific attributes or methods can be added here
+class Lake(gameObject):
+    def __init__(self, x, y, name, emoji, place):
+        super().__init__(x, y, name, emoji, place)
+        # Additional enemy-specific attributes or methods can be added here
+
  
 
 
 def print_grid():
     for i in range(grid_size):
         for j in range(grid_size):
-            #Loop all gameobjects
-            object_found = False
-            obj = gameObject
+            # Initialize variables to track the object with the highest sort layer
+            highest_sort_layer_obj = None
+            highest_sort_layer = float('-inf')  # Initialize with negative infinity
             
-            for obj in currentPlace.objects:
-                if [i,j] == obj.getPosition():
-                    object_found = True
-                    break
-                else:
-                    object_found = False
-
-            if object_found:
-                print(obj.emoji, end=" ")
+            # Loop through all game objects in the current place
+            for currentObj in currentPlace.objects:
+                if [i, j] == currentObj.getPosition():
+                    if currentObj.sortlayer > highest_sort_layer:
+                        highest_sort_layer = currentObj.sortlayer
+                        highest_sort_layer_obj = currentObj
+            
+            if highest_sort_layer_obj:
+                print(highest_sort_layer_obj.emoji, end=" ")  # Print the emoji of the object with the highest sort layer
             else:
-                print(currentPlace.emoji, end=" ")
+                print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
         print()
 
 places = {
@@ -191,7 +203,7 @@ allGameObjects = [gameObject]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"])
 chest = Chest(8, 0, "chest", "💾", places["house"])
-player = Player(4, 5, "player", "✳️ ", places["house"])
+player = Player(4, 5, "player", "✳️ ", places["house"],10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
 currentPlace = places["house"]
 player.setPlace(currentPlace)
@@ -203,7 +215,7 @@ for x in range(2):
         yOffset = y +offset[1]
         name = "lake" + str(xOffset) + str(yOffset)
         if name == "lake67" or name == "lake57":
-            bridge = gameObject(xOffset,yOffset,name,"🟫", places["outside"])
+            bridge = Bridge(xOffset,yOffset,name,"🟫", places["outside"])
         else:
             lake = gameObject(xOffset,yOffset,name,"🟦", places["outside"])
 
