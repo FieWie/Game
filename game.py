@@ -4,11 +4,12 @@ grid_size = 9
 
 
 class Place:
-    def __init__(self, name, description, player_start):
+    def __init__(self, name, description, player_start, emoji):
         self.name = name
         self.description = description
         self.player_start = player_start
         self.objects = []
+        self.emoji = emoji
 
     def GetName(self):
         return self.name
@@ -31,7 +32,7 @@ class gameObject:
         self.place = place
 
         place.addObject(self)
-    
+        
     def getPosition(self):
         return [self.x, self.y]
 
@@ -52,14 +53,6 @@ class gameObject:
         else:
             print("Object is not placed anywhere.")
 
-
-
-
-places = {
-    "house": Place("house", "You are inside the house.", [4, 5]),
-    "outside": Place("outside", "You are outside the house.", [1, 6])
-}
-
 class Link(gameObject):
     def __init__(self, x, y, name, emoji, place,destination = Place):
         super().__init__(x, y, name, emoji, place)
@@ -75,36 +68,68 @@ class Link(gameObject):
         player.setPosition(x,y)
         print_grid()
         print(currentPlace.description)
-        
-def move_player():
-    move = input("Where do you want to go? (w/s/a/d): ").lower()
-    if move == "q":
-        print("Exiting the game.")
-        return False
 
-    x, y = player.getPosition()
-    if move == "w" and x > 0:
-        x -= 1
-    elif move == "s" and x < grid_size - 1:
-        x += 1
-    elif move == "a" and y > 0:
-        y -= 1
-    elif move == "d" and y < grid_size - 1:
-        y += 1
+class Player(gameObject):
+    def __init__(self, x, y, name, emoji, place):
+        super().__init__(x, y, name, emoji, place)
+        # Additional player-specific attributes or methods can be added here
+    
+    def check_collision(self,x, y):
+        for obj in currentPlace.getObjects():
+            if obj.getPosition() == [x, y]:
+                return obj
+        return None
 
-    #If go through door
+    def move_player(self):
+        move = input("Where do you want to go? (w/s/a/d): ").lower()
+        if move == "q":
+            print("Exiting the game.")
+            return False
 
-    for link in links:
-        if link.place == currentPlace:
-            if [x, y] == link.getPosition():
-                link.interact()
-                return True
+        x, y = player.getPosition()
+        if move == "w" and x > 0:
+            x -= 1
+        elif move == "s" and x < grid_size - 1:
+            x += 1
+        elif move == "a" and y > 0:
+            y -= 1
+        elif move == "d" and y < grid_size - 1:
+            y += 1
 
-    player.setPosition(x, y)
-    return True
+        #If go through door
+
+        self.setPosition(x, y)
+
+        collided_obj = self.check_collision(x,y)
+        if collided_obj:
+            # Handle collision based on object type
+            if isinstance(collided_obj, Link):
+                collided_obj.interact()
+            elif isinstance(collided_obj, Enemy):
+                print("You encountered an enemy!")
+            elif isinstance(collided_obj, Chest):
+                print("You found a chest!")
+
+        else:
+            player.setPosition(x, y)
+        return True        
+
+
+    
+
+class Enemy(gameObject):
+    def __init__(self, x, y, name, emoji, place):
+        super().__init__(x, y, name, emoji, place)
+        # Additional enemy-specific attributes or methods can be added here
+ 
+class Chest(gameObject):
+    def __init__(self, x, y, name, emoji, place):
+        super().__init__(x, y, name, emoji, place)
+        # Additional enemy-specific attributes or methods can be added here
+ 
+
 
 def print_grid():
-    print(currentPlace)
     for i in range(grid_size):
         for j in range(grid_size):
             #Loop all gameobjects
@@ -121,17 +146,23 @@ def print_grid():
             if object_found:
                 print(obj.emoji, end=" ")
             else:
-                print("⬛", end=" ")
+                print(currentPlace.emoji, end=" ")
         print()
 
+places = {
+    "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
+    "outside": Place("outside", "You are outside the house.", [1, 6], "🟩")
+}
 links = [
     Link(3, 4, "door", "🚪", places["house"],places["outside"]),
     Link(0, 6, "house", "🏠", places["outside"],places["house"])
 ]
 
-enemy = gameObject(3, 3, "enemy", "🦧", places["outside"])
-chest = gameObject(8, 0, "chest", "💾", places["house"])
-player = gameObject(4, 5, "player", "✳️ ", places["house"])
+allGameObjects = [gameObject]
+
+enemy = Enemy(3, 3, "enemy", "🦧", places["outside"])
+chest = Chest(8, 0, "chest", "💾", places["house"])
+player = Player(4, 5, "player", "✳️ ", places["house"])
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
 currentPlace = places["house"]
 player.setPlace(currentPlace)
@@ -155,7 +186,7 @@ def main():
     print_grid()
 
     while True:
-        if not move_player():
+        if not player.move_player():
             break
         print_grid()
 
