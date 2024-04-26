@@ -1,4 +1,5 @@
 import random
+import time
 
 grid_size = 9
 
@@ -107,12 +108,40 @@ class Player(gameObject):
                 collided_obj.interact()
             elif isinstance(collided_obj, Enemy):
                 print("You encountered an enemy!")
+                self.FightEnemy()
             elif isinstance(collided_obj, Chest):
                 print("You found a chest!")
 
         else:
             player.setPosition(x, y)
-        return True        
+        return True
+
+    def FightEnemy(self):
+        fight = input("Want to fight the monster yes or no: ")
+        if fight == "yes":
+            time.sleep(2)
+            print("roll for damage")
+            resulat = roll_d20()
+            print(f"Dice {i+1}: {resulat}")
+            time.sleep(2)
+
+            if(resulat > 10):
+                print("You have succesfully killed the monster")
+                for i in range(grid_size):
+                    for j in range(grid_size):
+                        if [i, j] == enemy:
+                            print("💀", end=" ")         
+            else:
+                self.emoji = "💀"
+                time.sleep(2)
+                print("you died")
+                print_grid()
+                exit()
+                
+        elif fight == "no":
+    
+            print("nice")    
+
 
 
     
