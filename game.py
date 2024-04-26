@@ -121,7 +121,7 @@ class Player(gameObject):
         if fight == "yes":
             time.sleep(2)
             print("roll for damage")
-            resulat = roll_d20()
+            resulat = random.randint(1, 20)
             print(f"Dice {i+1}: {resulat}")
             time.sleep(2)
 
