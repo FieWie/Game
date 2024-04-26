@@ -156,16 +156,7 @@ class Player(gameObject):
             print("nice")  
             return False  
 
-
-
-    
-
 class Enemy(gameObject):
-    def __init__(self, x, y, name, emoji, place):
-        super().__init__(x, y, name, emoji, place)
-        # Additional enemy-specific attributes or methods can be added here
- 
-class Chest(gameObject):
     def __init__(self, x, y, name, emoji, place):
         super().__init__(x, y, name, emoji, place)
         # Additional enemy-specific attributes or methods can be added here
@@ -177,9 +168,6 @@ class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place):
         super().__init__(x, y, name, emoji, place)
         # Additional enemy-specific attributes or methods can be added here
-
- 
-
 
 def print_grid():
     print("\n" * 10)
@@ -214,9 +202,9 @@ links = [
 allGameObjects = [gameObject]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"])
-chest = Chest(8, 0, "chest", "💾", places["house"])
 player = Player(4, 5, "player", "✳️ ", places["house"],10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
+
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
