@@ -67,15 +67,6 @@ class Link(gameObject):
         print_grid()
         print(currentPlace.description)
         
-
-links = [
-    Link(3, 4, "door", "🚪", places["house"],places["outside"]),
-    Link(0, 6, "house", "🏠", places["outside"],places["house"])
-]
-
-
-
-
 def move_player():
     move = input("Where do you want to go? (w/s/a/d): ").lower()
     if move == "q":
@@ -124,9 +115,15 @@ def print_grid():
                 print("⬛", end=" ")
         print()
 
+links = [
+    Link(3, 4, "door", "🚪", places["house"],places["outside"]),
+    Link(0, 6, "house", "🏠", places["outside"],places["house"])
+]
+
 enemy = gameObject(3, 3, "enemy", "🦧", places["outside"])
 chest = gameObject(8, 0, "chest", "💾", places["house"])
 player = gameObject(4, 5, "player", "✳️ ", places["house"])
+barn = gameObject(4, 3, "barn", "👦", places["outside"])
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
