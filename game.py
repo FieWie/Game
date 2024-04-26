@@ -108,15 +108,25 @@ class Player(gameObject):
                 if not self.FightEnemy():
                     newX, newY = x,y
             elif isinstance(collided_obj, Lake):
-                print("You found a chest!")
+                player.setPosition(newX, newY)
+                print("You can't swim you idiot")
+                self.youded()
+                exit()
             elif isinstance(collided_obj, Bridge):
                 print("You walk on Bridge")
                 player.setPosition(newX, newY)
-
-
         else:
             player.setPosition(newX, newY)
         return True
+    
+    def youded(self):
+        for i in range(grid_size):
+            for j in range(grid_size):
+                if [i, j] == player.getPosition():
+                    print("💀", end=" ")
+                else:
+                    print("⬛", end=" ")
+            print()  
 
     def FightEnemy(self):
         fight = input("Want to fight the monster yes or no: ")
@@ -129,6 +139,7 @@ class Player(gameObject):
 
             if(resulat > 10):
                 print("You have succesfully killed the monster")
+                enemy.emoji = "💀"
                 for i in range(grid_size):
                     for j in range(grid_size):
                         if [i, j] == enemy:
@@ -137,7 +148,7 @@ class Player(gameObject):
                 self.emoji = "💀"
                 time.sleep(2)
                 print("you died")
-                print_grid()
+                self.youded()
                 exit()
             return True
                 
@@ -171,6 +182,7 @@ class Lake(gameObject):
 
 
 def print_grid():
+    print("\n" * 10)
     for i in range(grid_size):
         for j in range(grid_size):
             # Initialize variables to track the object with the highest sort layer
@@ -217,7 +229,7 @@ for x in range(2):
         if name == "lake67" or name == "lake57":
             bridge = Bridge(xOffset,yOffset,name,"🟫", places["outside"])
         else:
-            lake = gameObject(xOffset,yOffset,name,"🟦", places["outside"])
+            lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
 
 
 
