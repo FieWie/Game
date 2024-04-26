@@ -88,7 +88,7 @@ class Player(gameObject):
 
         x, y = player.getPosition()
         newX,newY = x,y
-        print(newX, newY)
+
         if move == "w" and x > 0:
             newX -= 1
         elif move == "s" and x < grid_size - 1:
@@ -168,6 +168,7 @@ class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place):
         super().__init__(x, y, name, emoji, place)
         # Additional enemy-specific attributes or methods can be added here
+
 
 def print_grid():
     print("\n" * 10)
