@@ -2,9 +2,13 @@ grid_size = 9
 player = [4, 5]
 door = [8, 4]
 chest = [8, 0]
+lake = [7,1],[7,2],[7,0],[7,3],[7,4],[7,5],[7,6],[7,8],[7,9],[6,0],[6,1],[6,2],[6,3],[6,4],[6,5],[6,6],[6,8],[6,9]
+brige = [7,7],[6,7]
+stig = [2,6],[3,6],[4,7],[5,7],[1,6],[3,7],[8,7]
 import random
 import time
 
+movment = 1
 def roll_d20():
     return random.randint(1, 20)
 
@@ -19,7 +23,7 @@ def print_grid():
     for i in range(grid_size):
         for j in range(grid_size):
             if [i, j] == player:
-                print("✳️ ", end=" ")
+                print("🈸", end=" ")
             elif [i, j] == door:
                 print("🚪", end=" ")
             elif [i, j] == chest:
@@ -43,13 +47,19 @@ def outside():
     for i in range(grid_size):
         for j in range(grid_size):
             if[i, j] == player:
-                print("✳️ ", end=" ")
+                print("🈸", end=" ")
             elif [i ,j] == house:
                 print("🏠", end=" ")
+            elif [i ,j] in lake:
+                print("🟦", end=" ")
             elif [i, j] == enemy:
                 print("🦧", end=" ")
+            elif [i, j] in brige:
+                print("🟫", end=" ")
+            elif [i, j] in stig:
+                print("⬛", end=" ")    
             else:
-                print("⬛", end=" ")
+                print("🟩", end=" ")
         print()
 
 def youded():
@@ -118,8 +128,17 @@ while True:
                     move_player(move)
                     outside()
 
+                    enemy[1] += movment
+                    if enemy[1] == 0 or enemy[1] == grid_size - 1:
+                        movment *= -1
+
                     if player == house:
                         break
+                    if player in lake:
+                        print("You can't swim you idiot")
+                        time.sleep(2)
+                        youded()
+                        exit()
 
                     if player == enemy:
                         fight = input("Want to fight the monster yes or no: ")
