@@ -127,6 +127,12 @@ barn = gameObject(4, 3, "barn", "👦", places["outside"])
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
+for x in grid_size:
+    for y in range(6):
+        name = "lake" +str(x + y)
+        lake = gameObject(x,y,name, )
+
+
 def main():
     print("Welcome to the game!")
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
