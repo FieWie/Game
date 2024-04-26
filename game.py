@@ -44,6 +44,15 @@ class gameObject:
         
     def getPlace(self):
         return self.place
+    
+    def deleteObject(self):
+        if self.place:
+            self.place.removeObject(self)
+            self.place = None
+        else:
+            print("Object is not placed anywhere.")
+
+
 
 
 places = {
@@ -129,11 +138,14 @@ player.setPlace(currentPlace)
 
 for x in range(2):
     for y in range(9):
-        name = "lake" +str(x + y)
-        offset = [ ]
-        xOffset = x +
+        offset = [5,0]
+        xOffset = x +offset[0]
+        yOffset = y +offset[1]
+        name = "lake" + str(xOffset) + str(yOffset)
+        if name == "lake67" or name == "lake57":
+            bridge = gameObject(xOffset,yOffset,name,"🟦", places["outside"])
+        lake = gameObject(xOffset,yOffset,name,"🟦", places["outside"])
 
-        lake = gameObject(x,y,name,"🟦", places["outside"])
 
 
 def main():
