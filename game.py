@@ -3,6 +3,8 @@ import time
 
 grid_size = 9
 
+textDelay = .03
+
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -99,21 +101,21 @@ class Player(gameObject):
             newY += 1
 
         collided_obj = self.check_collision(newX,newY)
+        print()
         if collided_obj:
             # Handle collision based on object type
             if isinstance(collided_obj, Link):
                 collided_obj.interact()
             elif isinstance(collided_obj, Enemy):
-                print("You encountered an enemy!")
+                animate_text("You encountered an enemy!",textDelay)
                 if not self.FightEnemy():
                     newX, newY = x,y
             elif isinstance(collided_obj, Lake):
                 player.setPosition(newX, newY)
-                print("You can't swim you idiot")
+                animate_text("You can't swim you idiot", textDelay)
                 self.youded()
                 exit()
             elif isinstance(collided_obj, Bridge):
-                print("You walk on Bridge")
                 player.setPosition(newX, newY)
         else:
             player.setPosition(newX, newY)
@@ -129,16 +131,17 @@ class Player(gameObject):
             print()  
 
     def FightEnemy(self):
-        fight = input("Want to fight the monster yes or no: ")
+        animate_text("Want to fight the monster yes or no: ", textDelay)
+        fight = input()
         if fight == "yes":
             time.sleep(2)
-            print("roll for damage")
+            animate_text("roll for damage", textDelay)
             resulat = random.randint(1, 20)
-            print(f"Dice {1}: {resulat}")
-            time.sleep(2)
+            animate_text(f"Dice {1}: {resulat}",textDelay)
+            time.sleep(1)
 
             if(resulat > 10):
-                print("You have succesfully killed the monster")
+                animate_text("You have succesfully killed the monster", textDelay)
                 enemy.emoji = "💀"
                 for i in range(grid_size):
                     for j in range(grid_size):
@@ -147,13 +150,13 @@ class Player(gameObject):
             else:
                 self.emoji = "💀"
                 time.sleep(2)
-                print("you died")
+                animate_text("you died", textDelay)
                 self.youded()
                 exit()
             return True
                 
         elif fight == "no":
-            print("nice")  
+            animate_text("nice", textDelay)  
             return False  
 
 class Enemy(gameObject):
@@ -168,6 +171,7 @@ class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place):
         super().__init__(x, y, name, emoji, place)
         # Additional enemy-specific attributes or methods can be added here
+
 
 
 def print_grid():
@@ -190,6 +194,13 @@ def print_grid():
             else:
                 print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
         print()
+
+def animate_text(string, delay):
+    for char in string:
+        print(char, end='', flush=True) 
+        time.sleep(delay) 
+    print()
+    time.sleep(1)  
 
 places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
@@ -223,7 +234,7 @@ for x in range(2):
 
 
 def main():
-    print("Welcome to the game!")
+    animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
     print_grid()
 
