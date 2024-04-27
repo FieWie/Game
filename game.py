@@ -231,8 +231,6 @@ for x in range(2):
         else:
             lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
 
-
-
 def main():
     animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
