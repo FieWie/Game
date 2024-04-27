@@ -220,9 +220,10 @@ barn = gameObject(4, 3, "barn", "👦", places["outside"])
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
+#Making the lake and bridge
+offset = [5,0]
 for x in range(2):
     for y in range(9):
-        offset = [5,0]
         xOffset = x +offset[0]
         yOffset = y +offset[1]
         name = "lake" + str(xOffset) + str(yOffset)
@@ -230,6 +231,7 @@ for x in range(2):
             bridge = Bridge(xOffset,yOffset,name,"🟫", places["outside"])
         else:
             lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
+
 
 def main():
     animate_text("Welcome to the game!", textDelay)
