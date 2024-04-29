@@ -5,6 +5,8 @@ grid_size = 9
 
 textDelay = .03
 
+
+
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -26,13 +28,16 @@ class Place:
         return self.objects
 
 class gameObject:
-    def __init__(self, x, y, name, emoji, place, sortlayer = 1):
+
+    isactive = True
+    def __init__(self, x, y, name, emoji, place, sortlayer = 1, deadEmoji = "💀"):
         self.x = x
         self.y = y
         self.name = name
         self.emoji = emoji
         self.place = place
         self.sortlayer = sortlayer
+        self.deadEmoji = deadEmoji
 
         place.addObject(self)
         
@@ -49,6 +54,13 @@ class gameObject:
     def getPlace(self):
         return self.place
     
+    def deleteObject(self):
+        if self.place:
+            self.place.removeObject(self)
+            self.place = None
+        else:
+            print("Object is not placed anywhere.")
+
     def deleteObject(self):
         if self.place:
             self.place.removeObject(self)
@@ -86,6 +98,7 @@ class weapon(gameObject):
             self.deleteObject()
             time.sleep(3)
         elif kark == "no":
+            animate_text("You don't like sharp things, pussy!")
             
 
 
@@ -130,7 +143,7 @@ class Player(gameObject):
             # Handle collision based on object type
             if isinstance(collided_obj, Link):
                 collided_obj.interact()
-            elif isinstance(collided_obj, Enemy):
+            elif isinstance(collided_obj, Enemy) and collided_obj.isactive:
                 animate_text("You encountered an enemy!",textDelay)
                 if not self.FightEnemy():
                     newX, newY = x,y
@@ -166,10 +179,12 @@ class Player(gameObject):
             time.sleep(2)
             animate_text("roll for damage", textDelay)
             resulat = random.randint(1, 20)
+            resulat = 20
             animate_text(f"Dice {1}: {resulat}",textDelay)
             time.sleep(1)
 
             if(resulat > 10):
+                enemy.deleteObject()
                 animate_text("You have succesfully killed the monster", textDelay)
                 enemy.emoji = "💀"
                 for i in range(grid_size):
@@ -198,6 +213,11 @@ class Enemy(gameObject):
         # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
             self.rörelse_riktning *= -1
         # Additional enemy-specific attributes or methods can be added here
+    
+    def deleteObject(self):
+        self.isactive = False
+        self.emoji = self.deadEmoji
+    
 class Bridge(gameObject):
     def __init__(self, x, y, name, emoji, place):
         super().__init__(x, y, name, emoji, place)
@@ -242,7 +262,7 @@ places = {
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩")
 }
 links = [
-    Link(3, 4, "door", "🚪", places["house"],places["outside"]),
+    Link(8, 4, "door", "🚪", places["house"],places["outside"]),
     Link(0, 6, "house", "🏠", places["outside"],places["house"])
 ]
 
@@ -255,9 +275,10 @@ wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
+#Making the lake and bridge
+offset = [5,0]
 for x in range(2):
     for y in range(9):
-        offset = [5,0]
         xOffset = x +offset[0]
         yOffset = y +offset[1]
         name = "lake" + str(xOffset) + str(yOffset)
@@ -273,9 +294,11 @@ def main():
     print_grid()
 
     while True:
+        
         if not player.move_player():
             break
-        enemy.monkey_run()
+        if enemy.isactive:
+            enemy.monkey_run()
         print_grid()
 
 if __name__ == "__main__":
