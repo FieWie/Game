@@ -72,6 +72,30 @@ class Link(gameObject):
         print_grid()
         print(currentPlace.description)
 
+class weapon(gameObject):
+    def __init__(self, damage, durability, x, y, name, emoji, place, sortlayer):
+        super().__init__(x, y, name, emoji, place,sortlayer)
+        self.damage = damage
+        self.durability = durability
+
+    def weapon_pickup(self):
+        kark = input()
+        if kark == "yes":
+            bla =  convertTuple(("you have picked up ", self.name))
+            animate_text(bla)
+            self.deleteObject()
+            time.sleep(3)
+        elif kark == "no":
+            
+
+
+    def check_weapon(self):
+        pass
+        
+def convertTuple(tup):
+    str = "".join(tup)
+    return str
+
 class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, sortlayer):
         super().__init__(x, y, name, emoji, place,sortlayer)
@@ -116,6 +140,11 @@ class Player(gameObject):
                 self.youded()
                 exit()
             elif isinstance(collided_obj, Bridge):
+                player.setPosition(newX, newY)
+            elif isinstance(collided_obj, weapon):
+                animate_text("Would you like to pick up the woden sword yes or no:")
+                collided_obj.weapon_pickup()
+                
                 player.setPosition(newX, newY)
         else:
             player.setPosition(newX, newY)
@@ -201,7 +230,7 @@ def print_grid():
                 print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
         print()
 
-def animate_text(string, delay):
+def animate_text(string, delay = textDelay):
     for char in string:
         print(char, end='', flush=True) 
         time.sleep(delay) 
@@ -222,7 +251,7 @@ allGameObjects = [gameObject]
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"])
 player = Player(4, 5, "player", "🈸", places["house"],10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
-
+wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
