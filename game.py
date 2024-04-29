@@ -28,13 +28,16 @@ class Place:
         return self.objects
 
 class gameObject:
-    def __init__(self, x, y, name, emoji, place, sortlayer = 1):
+
+    isactive = True
+    def __init__(self, x, y, name, emoji, place, sortlayer = 1, deadEmoji = "💀"):
         self.x = x
         self.y = y
         self.name = name
         self.emoji = emoji
         self.place = place
         self.sortlayer = sortlayer
+        self.deadEmoji = deadEmoji
 
         place.addObject(self)
         
@@ -58,6 +61,13 @@ class gameObject:
         else:
             print("Object is not placed anywhere.")
 
+    def deleteObject(self):
+        if self.place:
+            self.place.removeObject(self)
+            self.place = None
+        else:
+            print("Object is not placed anywhere.")
+
 class Link(gameObject):
     def __init__(self, x, y, name, emoji, place,destination = Place):
         super().__init__(x, y, name, emoji, place,1)
@@ -74,35 +84,7 @@ class Link(gameObject):
         print_grid()
         print(currentPlace.description)
 
-"""
-to do
-Path thingy:
-    path class with pos list (nodes)
-    draw path between nodes to do paths
-    automatic bridge at water
 
-dialog system
-    jip jap in .5, 1,2,3,4 seconds
-    with each sentences
-    with 3 different types and different voices
-
-"""
-"""
-class Path():
-    def __init__(self, pathemoji, nodes = [[0,0]]):
-        self.pathemoji = pathemoji
-        self.nodes = nodes
-        self.makePath()
-    
-    def makePath(self):
-        for i,node in self.nodes:
-            for x in node[0]:
-                for y in node[1]:
-                    print("path: [", x,", ", y, "]")
-
-nodes = [[7,1], [7,3], [8,3], [8,9]]
-path = Path("⬛", nodes )
-"""
 class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, sortlayer):
         super().__init__(x, y, name, emoji, place,sortlayer)
@@ -137,7 +119,7 @@ class Player(gameObject):
             # Handle collision based on object type
             if isinstance(collided_obj, Link):
                 collided_obj.interact()
-            elif isinstance(collided_obj, Enemy):
+            elif isinstance(collided_obj, Enemy) and collided_obj.isactive:
                 animate_text("You encountered an enemy!",textDelay)
                 if not self.FightEnemy():
                     newX, newY = x,y
@@ -168,10 +150,12 @@ class Player(gameObject):
             time.sleep(2)
             animate_text("roll for damage", textDelay)
             resulat = random.randint(1, 20)
+            resulat = 20
             animate_text(f"Dice {1}: {resulat}",textDelay)
             time.sleep(1)
 
             if(resulat > 10):
+                enemy.deleteObject()
                 animate_text("You have succesfully killed the monster", textDelay)
                 enemy.emoji = "💀"
                 for i in range(grid_size):
@@ -200,6 +184,11 @@ class Enemy(gameObject):
         # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
             self.rörelse_riktning *= -1
         # Additional enemy-specific attributes or methods can be added here
+    
+    def deleteObject(self):
+        self.isactive = False
+        self.emoji = self.deadEmoji
+    
 class Bridge(gameObject):
     def __init__(self, x, y, name, emoji, place):
         super().__init__(x, y, name, emoji, place)
@@ -244,7 +233,7 @@ places = {
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩")
 }
 links = [
-    Link(3, 4, "door", "🚪", places["house"],places["outside"]),
+    Link(8, 4, "door", "🚪", places["house"],places["outside"]),
     Link(0, 6, "house", "🏠", places["outside"],places["house"])
 ]
 
@@ -276,9 +265,11 @@ def main():
     print_grid()
 
     while True:
+        
         if not player.move_player():
             break
-        enemy.monkey_run()
+        if enemy.isactive:
+            enemy.monkey_run()
         print_grid()
 
 if __name__ == "__main__":
