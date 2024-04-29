@@ -5,6 +5,8 @@ grid_size = 9
 
 textDelay = .03
 
+
+
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -72,6 +74,35 @@ class Link(gameObject):
         print_grid()
         print(currentPlace.description)
 
+"""
+to do
+Path thingy:
+    path class with pos list (nodes)
+    draw path between nodes to do paths
+    automatic bridge at water
+
+dialog system
+    jip jap in .5, 1,2,3,4 seconds
+    with each sentences
+    with 3 different types and different voices
+
+"""
+"""
+class Path():
+    def __init__(self, pathemoji, nodes = [[0,0]]):
+        self.pathemoji = pathemoji
+        self.nodes = nodes
+        self.makePath()
+    
+    def makePath(self):
+        for i,node in self.nodes:
+            for x in node[0]:
+                for y in node[1]:
+                    print("path: [", x,", ", y, "]")
+
+nodes = [[7,1], [7,3], [8,3], [8,9]]
+path = Path("⬛", nodes )
+"""
 class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, sortlayer):
         super().__init__(x, y, name, emoji, place,sortlayer)
