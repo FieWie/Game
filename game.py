@@ -193,6 +193,12 @@ class Player(gameObject):
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place):
         super().__init__(x, y, name, emoji, place)
+    rörelse_riktning = 1
+    def monkey_run(self):
+        self.y += self.rörelse_riktning
+        if self.y == 0 or self.y == grid_size - 1:
+        # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
+            self.rörelse_riktning *= -1
         # Additional enemy-specific attributes or methods can be added here
 class Bridge(gameObject):
     def __init__(self, x, y, name, emoji, place):
@@ -245,7 +251,7 @@ links = [
 allGameObjects = [gameObject]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"])
-player = Player(4, 5, "player", "✳️ ", places["house"],10)
+player = Player(4, 5, "player", "🈸", places["house"],10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
 
 currentPlace = places["house"]
@@ -272,6 +278,7 @@ def main():
     while True:
         if not player.move_player():
             break
+        enemy.monkey_run()
         print_grid()
 
 if __name__ == "__main__":
