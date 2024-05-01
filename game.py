@@ -69,29 +69,39 @@ class gameObject:
         else:
             print("Object is not placed anywhere.")
 
-class Link:
-
-
-    def __init__(self,start_pos: Tuple[int, int], destination_pos: Tuple[int, int], name, emoji, place = Place,destination = Place):
-        #super().__init__(x, y, name, emoji, place,1)
-        self.destination = destination
-        self.start_pos = start_pos
-        self.destination_pos = destination_pos
-        obj_start = gameObject(start_pos[0], start_pos[1], name, emoji, place, destination)
-        obj_destination = gameObject(destination_pos[0], destination[1], name, emoji,destination)
-
+class LinkObject(gameObject):
+    def __init__(self, position: Tuple[int, int], name, emoji, place, link):
+        super().__init__(position[0], position[1], name, emoji, place, 1)
+        self.link = link
 
     def interact(self):
-        global currentPlace 
+        self.link.interact()
+        
+
+class Link:
+    def __init__(self, linkObject1, linkObject2, destination):
+        self.linkObject1 = linkObject1
+        self.linkObject2 = linkObject2
+        self.destination = destination
+
+    def interact(self):
+        global currentPlace
+        currentlinkobject = LinkObject
         currentPlace.removeObject(player)
-        currentPlace = self.destination
-        currentPlace.addObject(player)
-        if currentPlace == Place:
-            player.setPosition(self.x_destination, self.y_destination)
+        if currentPlace == self.linkObject1.place:
+            currentlinkobject = self.linkObject2
+        elif currentPlace == self.linkObject2.place:
+            currentlinkobject = self.linkObject1
         else:
-            player.setPosition(self.x_start, self.y_start)
+            print("place error")
+        
+        currentPlace = currentlinkobject.getPlace()
+        currentPlace.addObject(player)
+        x,y = currentlinkobject.getPosition()
+        player.setPosition(x, y)
         print_grid()
         print(currentPlace.description)
+        
 
 class weapon(gameObject):
     def __init__(self, damage, durability, x, y, name, emoji, place, sortlayer):
@@ -118,37 +128,6 @@ class weapon(gameObject):
 def convertTuple(tup):
     str = "".join(tup)
     return str
-
-"""
-to do
-Path thingy:
-    path class with pos list (nodes)
-    draw path between nodes to do paths
-    automatic bridge at water
-
-dialog system
-    jip jap in .5, 1,2,3,4 seconds
-    with each sentences
-    with 3 different types and different voices
-
-"""
-
-"""class Path():
-    def __init__(self, pathemoji, nodes = [[0,0]]):
-        self.pathemoji = pathemoji
-        self.nodes = nodes
-        self.makePath()
-    
-    def makePath(self):
-        for nodes in len(self.nodes):
-            for x,y in self.nodes:
-                print("path:", "[", x,", ", y, "]")
-      
-
-nodes = [[7,1], [7,3], [8,3], [8,9]]
-path = Path("⬛", nodes )
-"""
-
 
 class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, sortlayer):
@@ -184,7 +163,7 @@ class Player(gameObject):
         print()
         if collided_obj:
             # Handle collision based on object type
-            if isinstance(collided_obj, Link):
+            if isinstance(collided_obj, LinkObject):
                 collided_obj.interact()
             elif isinstance(collided_obj, Enemy) and collided_obj.isactive:
                 animate_text("You encountered an enemy!",textDelay)
@@ -319,10 +298,19 @@ places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩")
 }
-links = [
-    Link(8, 4, "door", "🚪", places["house"],places["outside"]),
-    Link(0, 6, "house", "🏠", places["outside"],places["house"])
-]
+
+linkObjects = {
+    "door": LinkObject((8,4), "door", "🚪", places["house"], None),
+    "house": LinkObject((0,6), "house", "🏠", places["outside"], None)
+
+}
+    
+links = {
+    "home" : Link(linkObjects["door"], linkObjects["house"], places["outside"])
+}
+
+linkObjects["door"].link = links["home"]
+linkObjects["house"].link = links["home"]
 
 allGameObjects = [gameObject]
 
