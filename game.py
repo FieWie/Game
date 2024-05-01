@@ -105,10 +105,13 @@ class weapon(gameObject):
             bla =  convertTuple(("you have picked up ", self.name))
             animate_text(bla)
             self.deleteObject()
-            time.sleep(3)
+            player.has_sword = True
+            return True
         elif kark == "no":
             animate_text("You don't like sharp things, pussy!")
             
+
+
     def check_weapon(self):
         pass
         
@@ -150,6 +153,8 @@ path = Path("⬛", nodes )
 class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, sortlayer):
         super().__init__(x, y, name, emoji, place,sortlayer)
+    
+    has_sword = False
 
     def check_collision(self,x, y):
         for obj in currentPlace.getObjects():
@@ -214,6 +219,10 @@ class Player(gameObject):
         animate_text("Want to fight the monster yes or no: ", textDelay)
         fight = input()
         if fight == "yes":
+            if not self.has_sword:  # Kontrollerar om spelaren har svärdet
+                animate_text("You can't fight without a weapon!", textDelay)
+                return False
+        
             time.sleep(2)
             animate_text("roll for damage", textDelay)
             resulat = random.randint(1, 20)
@@ -222,13 +231,17 @@ class Player(gameObject):
             time.sleep(1)
 
             if(resulat > 10):
-                enemy.deleteObject()
-                animate_text("You have succesfully killed the monster", textDelay)
-                enemy.emoji = "💀"
-                for i in range(grid_size):
-                    for j in range(grid_size):
-                        if [i, j] == enemy:
-                            print("💀", end=" ")         
+                enemy.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
+                if enemy.health <= 0:
+                    enemy.deleteObject()
+                    animate_text("You have succesfully killed the monster", textDelay)
+                    enemy.emoji = "💀"
+                    for i in range(grid_size):
+                        for j in range(grid_size):
+                            if [i, j] == enemy:
+                                print("💀", end=" ")       
+                else:
+                    animate_text(f"You dealt {wodden_sword.damage} damage to the enemy", textDelay)  
             else:
                 self.emoji = "💀"
                 time.sleep(2)
@@ -236,14 +249,15 @@ class Player(gameObject):
                 self.youded()
                 exit()
             return True
-                
+            
         elif fight == "no":
             animate_text("nice", textDelay)  
             return False  
 
 class Enemy(gameObject):
-    def __init__(self, x, y, name, emoji, place):
+    def __init__(self, x, y, name, emoji, place, health):
         super().__init__(x, y, name, emoji, place)
+        self.health = health
     rörelse_riktning = 1
     def monkey_run(self):
         self.y += self.rörelse_riktning
@@ -251,6 +265,12 @@ class Enemy(gameObject):
         # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
             self.rörelse_riktning *= -1
         # Additional enemy-specific attributes or methods can be added here
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health <= 0:
+            self.health = 0  # Säkerställ att hälsan inte går under noll
+                    
+
     
     def deleteObject(self):
         self.isactive = False
@@ -296,18 +316,17 @@ def animate_text(string, delay = textDelay):
     time.sleep(1)  
 
 places = {
-    "house": Place("house", "You are inside the house.", [7, 4], "⬛"),
+    "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩")
 }
 links = [
-    Link(Tuple[8, 4], destination_pos: Tuple[8, 4] 4,4,"door", "🚪", places["house"],places["outside"]),
-    #Link(8, 4, "door", "🚪", places["house"],places["outside"]),
-    #Link(0, 6, "house", "🏠", places["outside"],places["house"])
+    Link(8, 4, "door", "🚪", places["house"],places["outside"]),
+    Link(0, 6, "house", "🏠", places["outside"],places["house"])
 ]
 
 allGameObjects = [gameObject]
 
-enemy = Enemy(3, 3, "enemy", "🦧", places["outside"])
+enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
