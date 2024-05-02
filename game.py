@@ -8,6 +8,7 @@ textDelay = .03
 
 
 
+
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -101,7 +102,51 @@ class Link:
         player.setPosition(x, y)
         print_grid()
         print(currentPlace.description)
-        
+
+"""
+to do
+Path thingy:
+    path class with pos list (nodes)
+    draw path between nodes to do paths
+    automatic bridge at water
+Implementation:
+    for loop node in nodes:
+
+ """
+
+class Path():
+    def __init__(self, pathemoji, nodes, place):
+        self.pathemoji = pathemoji
+        self.nodes = nodes
+        self.place = place
+        self.path = self.make_path()
+    
+    def make_path(self):
+        path = []
+        for i in range(len(self.nodes) - 1):
+            x1, y1 = self.nodes[i]
+            x2, y2 = self.nodes[i + 1]
+            path.extend(self.interpolate_points(x1, y1, x2, y2))
+        for block in path:
+            block = gameObject(block[0], block[1], "path", self.pathemoji, self.place)
+        return path 
+
+    
+    def interpolate_points(self, x1, y1, x2, y2):
+        path = []
+        dx = x2 - x1
+        dy = y2 - y1
+        if dx == 0:  # Vertical line
+            for y in range(min(y1, y2), max(y1, y2) + 1):
+                path.append([x1, y])
+        elif dy == 0:  # Horizontal line
+            for x in range(min(x1, x2), max(x1, x2) + 1):
+                path.append([x, y1])
+        else:  # Diagonal line (assuming 45 degrees)
+            print("Error: line not straight like me =$ ")
+            exit() 
+        return path
+
 
 class weapon(gameObject):
     def __init__(self, damage, durability, x, y, name, emoji, place, sortlayer):
@@ -180,6 +225,8 @@ class Player(gameObject):
                 animate_text("Would you like to pick up the woden sword yes or no:")
                 collided_obj.weapon_pickup()
                 
+                player.setPosition(newX, newY)
+            elif isinstance(collided_obj, gameObject):
                 player.setPosition(newX, newY)
         else:
             player.setPosition(newX, newY)
@@ -312,7 +359,9 @@ links = {
 linkObjects["door"].link = links["home"]
 linkObjects["house"].link = links["home"]
 
-allGameObjects = [gameObject]
+nodes = [[1,6], [3,6], [3,7], [8,7]]
+path = Path("⬛", nodes, places["outside"])
+print(path.path)
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
