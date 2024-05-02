@@ -1,9 +1,17 @@
 """
+New stuff:
 
-dialog system
-    jip jap in .5, 1,2,3,4 seconds
-    with each sentences
-    with 3 different types and different voices
+    dialog system
+        jip jap in .5, 1,2,3,4 seconds
+        with each sentences
+        with 3 different types and different voices
+
+    Npc thingy
+    
+Fixes/Bugs:
+    Move all interact function to each class instead of player
+    x and y thing
+
 
 """
 

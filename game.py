@@ -32,7 +32,7 @@ class Place:
 class gameObject:
 
     isactive = True
-    def __init__(self, x, y, name, emoji, place, sortlayer = 1, deadEmoji = "💀"):
+    def __init__(self, x, y, name, emoji, place,is_interactable, sortlayer = 1, deadEmoji = "💀", ):
         self.x = x
         self.y = y
         self.name = name
@@ -40,6 +40,7 @@ class gameObject:
         self.place = place
         self.sortlayer = sortlayer
         self.deadEmoji = deadEmoji
+        self.is_interactable = is_interactable
 
         place.addObject(self)
         
@@ -69,10 +70,12 @@ class gameObject:
             self.place = None
         else:
             print("Object is not placed anywhere.")
+    def interact(self):
+        return self.is_interactable
 
 class LinkObject(gameObject):
     def __init__(self, position: Tuple[int, int], name, emoji, place, link):
-        super().__init__(position[0], position[1], name, emoji, place, 1)
+        super().__init__(position[0], position[1], name, emoji, place,True, 1)
         self.link = link
 
     def interact(self):
@@ -125,7 +128,7 @@ class Path():
             if isinstance(collide_obj, Lake):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
-            block = gameObject(block[0], block[1], "path", emoji, self.place)
+            block = gameObject(block[0], block[1], "path", emoji, self.place, True)
         return path 
 
     
@@ -147,7 +150,7 @@ class Path():
 
 class weapon(gameObject):
     def __init__(self, damage, durability, x, y, name, emoji, place, sortlayer):
-        super().__init__(x, y, name, emoji, place,sortlayer)
+        super().__init__(x, y, name, emoji, place,True,sortlayer)
         self.damage = damage
         self.durability = durability
 
@@ -173,7 +176,7 @@ def convertTuple(tup):
 
 class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, sortlayer):
-        super().__init__(x, y, name, emoji, place,sortlayer)
+        super().__init__(x, y, name, emoji, place,True,sortlayer)
     
     has_sword = False
 
@@ -270,7 +273,7 @@ class Player(gameObject):
 
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place, health):
-        super().__init__(x, y, name, emoji, place, sortlayer=2)
+        super().__init__(x, y, name, emoji, place,is_interactable = True, sortlayer=2)
         self.health = health
     rörelse_riktning = 1
     def monkey_run(self):
@@ -292,7 +295,7 @@ class Enemy(gameObject):
     
 class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place):
-        super().__init__(x, y, name, emoji, place, sortlayer=0)
+        super().__init__(x, y, name, emoji, place,True, sortlayer=0)
         # Additional enemy-specific attributes or methods can be added here
 
 def check_collision(x, y, place):
@@ -351,7 +354,7 @@ linkObjects["house"].link = links["home"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
-barn = gameObject(4, 3, "barn", "👦", places["outside"])
+barn = gameObject(4, 3, "barn", "👦", places["outside"],False)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
 player.setPlace(currentPlace)
 
