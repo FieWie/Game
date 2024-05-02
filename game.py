@@ -99,7 +99,7 @@ class weapon(gameObject):
             player.has_sword = True
             return True
         elif kark == "no":
-            animate_text("You don't like sharp things, pussy!")
+            animate_text("You don't like sharp things, pussy")
             return False
         else:
             animate_text("haha")
@@ -296,7 +296,7 @@ allGameObjects = [gameObject]
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
-wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
+wodden_sword = weapon(1, 10, 3,5,"woden sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
