@@ -103,16 +103,7 @@ class Link:
         print_grid()
         print(currentPlace.description)
 
-"""
-to do
-Path thingy:
-    path class with pos list (nodes)
-    draw path between nodes to do paths
-    automatic bridge at water
-Implementation:
-    for loop node in nodes:
 
- """
 
 class Path():
     def __init__(self, pathemoji, nodes, place):
