@@ -197,7 +197,7 @@ class Player(gameObject):
             newY -= 1
         elif move == "d" and y < grid_size - 1:
             newY += 1
-
+        collided_obj = gameObject
         collided_obj = check_collision(newX,newY, currentPlace)
         if collided_obj:
             # Handle collision based on object type
@@ -217,7 +217,7 @@ class Player(gameObject):
                 collided_obj.weapon_pickup()
                 
                 player.setPosition(newX, newY)
-            elif isinstance(collided_obj, gameObject):
+            elif collided_obj.interact():
                 player.setPosition(newX, newY)
         else:
             player.setPosition(newX, newY)
