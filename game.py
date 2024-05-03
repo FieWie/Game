@@ -1,5 +1,6 @@
 import random
 import time
+from typing import Tuple
 
 grid_size = 9
 
@@ -68,21 +69,39 @@ class gameObject:
         else:
             print("Object is not placed anywhere.")
 
-class Link(gameObject):
-    def __init__(self, x, y, name, emoji, place,destination = Place):
-        super().__init__(x, y, name, emoji, place,1)
+class LinkObject(gameObject):
+    def __init__(self, position: Tuple[int, int], name, emoji, place, link):
+        super().__init__(position[0], position[1], name, emoji, place, 1)
+        self.link = link
+
+    def interact(self):
+        self.link.interact()
+        
+
+class Link:
+    def __init__(self, linkObject1, linkObject2, destination):
+        self.linkObject1 = linkObject1
+        self.linkObject2 = linkObject2
         self.destination = destination
 
     def interact(self):
-        global currentPlace 
+        global currentPlace
+        currentlinkobject = LinkObject
         currentPlace.removeObject(player)
-        currentPlace = self.destination
+        if currentPlace == self.linkObject1.place:
+            currentlinkobject = self.linkObject2
+        elif currentPlace == self.linkObject2.place:
+            currentlinkobject = self.linkObject1
+        else:
+            print("place error")
+        
+        currentPlace = currentlinkobject.getPlace()
         currentPlace.addObject(player)
-
-        x,y = places[currentPlace.GetName()].player_start
-        player.setPosition(x,y)
+        x,y = currentlinkobject.getPosition()
+        player.setPosition(x, y)
         print_grid()
         print(currentPlace.description)
+        
 
 class weapon(gameObject):
     def __init__(self, damage, durability, x, y, name, emoji, place, sortlayer):
@@ -99,7 +118,7 @@ class weapon(gameObject):
             player.has_sword = True
             return True
         elif kark == "no":
-            animate_text("You don't like sharp things, pussy")
+            animate_text("You don't like sharp things, pussy!")
             return False
         else:
             animate_text("haha")
@@ -148,7 +167,7 @@ class Player(gameObject):
         print()
         if collided_obj:
             # Handle collision based on object type
-            if isinstance(collided_obj, Link):
+            if isinstance(collided_obj, LinkObject):
                 collided_obj.interact()
             elif isinstance(collided_obj, Enemy) and collided_obj.isactive:
                 animate_text("You encountered an enemy!",textDelay)
@@ -282,14 +301,28 @@ def animate_text(string, delay = textDelay):
 places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩"),
-    "forest": Place("forest", "You have entered the forest",[0,7], "🟩")
+    "forest": Place("forest", "You have entered the forest", [0,7],"🟩"),
+    "cave": Place("cave", "Yo is dark here",[8,4],"⬛")
 }
-links = [
-    Link(8, 4, "door", "🚪", places["house"],places["outside"]),
-    Link(0, 6, "house", "🏠", places["outside"],places["house"]),
-    Link(8,7, "grass", "🟩", places["outside"],places["forest"]),
-    Link(0,7,"path","⬛",places["forest"],places["outside"])
-]
+
+linkObjects = {
+    "door": LinkObject((8,4), "door", "🚪", places["house"], None),
+    "house": LinkObject((0,6), "house", "🏠", places["outside"], None),
+    "grass": LinkObject((8,7), "grass", "🟩", places["outside"], None),
+    "black": LinkObject((0,7), "black", "⬛", places["forest"], None),
+    "cave_entrance": LinkObject((4,0),"entrance","⬛", places["forest"], None)
+
+}
+    
+links = {
+    "home" : Link(linkObjects["door"], linkObjects["house"], places["outside"]),
+    "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"])
+}
+
+linkObjects["door"].link = links["home"]
+linkObjects["house"].link = links["home"]
+linkObjects["grass"].link = links["outside"]
+linkObjects["black"].link = links["outside"]
 
 allGameObjects = [gameObject]
 
@@ -299,6 +332,13 @@ barn = gameObject(4, 3, "barn", "👦", places["outside"])
 wodden_sword = weapon(1, 10, 3,5,"woden sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
+
+
+stone = gameObject(5,0,"stone", "🪨 ", places["forest"])
+stone2 = gameObject(3,0,"stone","🪨 ", places["forest"])
+
+
+
 
 #Making the lake and bridge
 offset = [5,0]
