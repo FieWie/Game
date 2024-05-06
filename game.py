@@ -346,24 +346,28 @@ linkObjects = {
     "house": LinkObject((0,6), "house", "🏠", places["outside"], None),
     "grass": LinkObject((8,7), "grass", "🟩", places["outside"], None),
     "black": LinkObject((0,7), "black", "⬛", places["forest"], None),
-    "cave_entrance": LinkObject((4,0),"entrance","⬛", places["forest"], None)
+    "cave_entrance": LinkObject((4,0),"entrance","⬛", places["forest"], None),
+    "inside_cave": LinkObject((4,8),"cave_exit","⬛", places["cave"], None)
 
 }
     
 links = {
     "home" : Link(linkObjects["door"], linkObjects["house"], places["outside"]),
-    "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"])
+    "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"]),
+    "forest" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["cave"])
 }
 
 linkObjects["door"].link = links["home"]
 linkObjects["house"].link = links["home"]
 linkObjects["grass"].link = links["outside"]
 linkObjects["black"].link = links["outside"]
-
+linkObjects["cave_entrance"].link = links["forest"]
+linkObjects["inside_cave"].link = links["forest"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
+orge = Enemy(5,3, "orge","🧌 ",places["forest"],10)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
@@ -371,7 +375,8 @@ player.setPlace(currentPlace)
 
 stone = gameObject(5,0,"stone", "🪨 ", places["forest"])
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"])
-
+trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
+tree = Path("🌲","",trees,places["forest"])
 
 
 
