@@ -63,13 +63,6 @@ class gameObject:
             self.place = None
         else:
             print("Object is not placed anywhere.")
-
-    def deleteObject(self):
-        if self.place:
-            self.place.removeObject(self)
-            self.place = None
-        else:
-            print("Object is not placed anywhere.")
     def interact(self):
         return self.is_interactable
 
@@ -109,12 +102,13 @@ class Link:
 
 
 class Path():
-    def __init__(self, path_emoji, bridge_emoji, nodes, place):
+    def __init__(self, path_emoji, bridge_emoji, nodes, place, collide):
         self.path_emoji = path_emoji
         self.bridge_emoji = bridge_emoji
         self.nodes = nodes
         self.place = place
         self.path = self.make_path()
+        self.collide = collide
     
     def make_path(self):
         path = []
@@ -218,6 +212,7 @@ class Player(gameObject):
                 
                 player.setPosition(newX, newY)
             elif collided_obj.interact():
+                print("collide with obj")
                 player.setPosition(newX, newY)
         else:
             player.setPosition(newX, newY)
@@ -368,8 +363,7 @@ for x in range(2):
         lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
 
 nodes = [[1,6], [3,6], [3,7], [8,7]]
-path = Path("⬛", "🟫", nodes, places["outside"])
-
+path = Path("⬛", "🟫", nodes, places["outside"], True)
 
 def main():
     animate_text("Welcome to the game!", textDelay)
