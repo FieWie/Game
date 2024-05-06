@@ -5,6 +5,7 @@ from typing import Tuple
 grid_size = 9
 
 textDelay = .03
+currentPlace = None
 
 
 
@@ -101,7 +102,48 @@ class Link:
         player.setPosition(x, y)
         print_grid()
         print(currentPlace.description)
-        
+
+
+
+class Path():
+    def __init__(self, path_emoji, bridge_emoji, nodes, place):
+        self.path_emoji = path_emoji
+        self.bridge_emoji = bridge_emoji
+        self.nodes = nodes
+        self.place = place
+        self.path = self.make_path()
+    
+    def make_path(self):
+        path = []
+        for i in range(len(self.nodes) - 1):
+            x1, y1 = self.nodes[i]
+            x2, y2 = self.nodes[i + 1]
+            path.extend(self.interpolate_points(x1, y1, x2, y2))
+        for block in path:
+            emoji = self.path_emoji
+            collide_obj = check_collision(block[0],block[1], self.place)
+            if isinstance(collide_obj, Lake):
+                collide_obj.deleteObject()
+                emoji = self.bridge_emoji
+            block = gameObject(block[0], block[1], "path", emoji, self.place)
+        return path 
+
+    
+    def interpolate_points(self, x1, y1, x2, y2):
+        path = []
+        dx = x2 - x1
+        dy = y2 - y1
+        if dx == 0:  # Vertical line
+            for y in range(min(y1, y2), max(y1, y2) + 1):
+                path.append([x1, y])
+        elif dy == 0:  # Horizontal line
+            for x in range(min(x1, x2), max(x1, x2) + 1):
+                path.append([x, y1])
+        else:  # Diagonal line (assuming 45 degrees)
+            print("Error: line not straight like me =$ ")
+            exit() 
+        return path
+
 
 class weapon(gameObject):
     def __init__(self, damage, durability, x, y, name, emoji, place, sortlayer):
@@ -139,12 +181,6 @@ class Player(gameObject):
     
     has_sword = False
 
-    def check_collision(self,x, y):
-        for obj in currentPlace.getObjects():
-            if obj.getPosition() == [x, y]:
-                return obj
-        return None
-
     def move_player(self):
         move = input("Where do you want to go? (w/s/a/d): ").lower()
         if move == "q":
@@ -163,8 +199,7 @@ class Player(gameObject):
         elif move == "d" and y < grid_size - 1:
             newY += 1
 
-        collided_obj = self.check_collision(newX,newY)
-        print()
+        collided_obj = check_collision(newX,newY, currentPlace)
         if collided_obj:
             # Handle collision based on object type
             if isinstance(collided_obj, LinkObject):
@@ -178,12 +213,12 @@ class Player(gameObject):
                 animate_text("You can't swim you idiot", textDelay)
                 self.youded()
                 exit()
-            elif isinstance(collided_obj, Bridge):
-                player.setPosition(newX, newY)
             elif isinstance(collided_obj, weapon):
                 animate_text("Would you like to pick up the woden sword yes or no:")
                 collided_obj.weapon_pickup()
                 
+                player.setPosition(newX, newY)
+            elif isinstance(collided_obj, gameObject):
                 player.setPosition(newX, newY)
         else:
             player.setPosition(newX, newY)
@@ -239,7 +274,7 @@ class Player(gameObject):
 
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place, health):
-        super().__init__(x, y, name, emoji, place)
+        super().__init__(x, y, name, emoji, place, sortlayer=2)
         self.health = health
     rörelse_riktning = 1
     def monkey_run(self):
@@ -259,16 +294,16 @@ class Enemy(gameObject):
         self.isactive = False
         self.emoji = self.deadEmoji
     
-class Bridge(gameObject):
-    def __init__(self, x, y, name, emoji, place):
-        super().__init__(x, y, name, emoji, place)
-        # Additional enemy-specific attributes or methods can be added here
 class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place):
-        super().__init__(x, y, name, emoji, place)
+        super().__init__(x, y, name, emoji, place, sortlayer=0)
         # Additional enemy-specific attributes or methods can be added here
 
-
+def check_collision(x, y, place):
+        for obj in place.getObjects():
+            if obj.getPosition() == [x, y]:
+                return obj
+        return None
 
 def print_grid():
     print("\n" * 10)
@@ -304,6 +339,7 @@ places = {
     "forest": Place("forest", "You have entered the forest", [0,7],"🟩"),
     "cave": Place("cave", "Yo is dark here",[8,4],"⬛")
 }
+currentPlace = places["house"]
 
 linkObjects = {
     "door": LinkObject((8,4), "door", "🚪", places["house"], None),
@@ -324,12 +360,11 @@ linkObjects["house"].link = links["home"]
 linkObjects["grass"].link = links["outside"]
 linkObjects["black"].link = links["outside"]
 
-allGameObjects = [gameObject]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"])
-wodden_sword = weapon(1, 10, 3,5,"woden sword", "🗡️ ",places["house"],0)
+wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
@@ -347,10 +382,10 @@ for x in range(2):
         xOffset = x +offset[0]
         yOffset = y +offset[1]
         name = "lake" + str(xOffset) + str(yOffset)
-        if name == "lake67" or name == "lake57":
-            bridge = Bridge(xOffset,yOffset,name,"🟫", places["outside"])
-        else:
-            lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
+        lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
+
+nodes = [[1,6], [3,6], [3,7], [8,7]]
+path = Path("⬛", "🟫", nodes, places["outside"])
 
 
 def main():
