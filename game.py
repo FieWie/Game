@@ -102,13 +102,13 @@ class Link:
 
 
 class Path():
-    def __init__(self, path_emoji, bridge_emoji, nodes, place, collide):
+    def __init__(self, path_emoji, bridge_emoji, nodes, place, is_interactable):
         self.path_emoji = path_emoji
         self.bridge_emoji = bridge_emoji
         self.nodes = nodes
         self.place = place
         self.path = self.make_path()
-        self.collide = collide
+        self.is_interactable = is_interactable
     
     def make_path(self):
         path = []
@@ -122,7 +122,8 @@ class Path():
             if isinstance(collide_obj, Lake):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
-            block = gameObject(block[0], block[1], "path", emoji, self.place, True)
+        var = self.nodes
+        block = gameObject(block[0], block[1], "path", emoji, self.place, var)
         return path 
 
     
@@ -364,16 +365,16 @@ linkObjects["inside_cave"].link = links["forest"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
-barn = gameObject(4, 3, "barn", "👦", places["outside"])
+barn = gameObject(4, 3, "barn", "👦", places["outside"], False)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
 
-stone = gameObject(5,0,"stone", "🪨 ", places["forest"])
-stone2 = gameObject(3,0,"stone","🪨 ", places["forest"])
+stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
+stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
-tree = Path("🌲","",trees,places["forest"])
+tree = Path("🌲","",trees,places["forest"],True)
 
 
 
@@ -387,7 +388,7 @@ for x in range(2):
         lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
 
 nodes = [[1,6], [3,6], [3,7], [8,7]]
-path = Path("⬛", "🟫", nodes, places["outside"], True)
+path = Path("⬛", "🟫", nodes, places["outside"], False)
 
 def main():
     animate_text("Welcome to the game!", textDelay)
