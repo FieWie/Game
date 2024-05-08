@@ -158,6 +158,10 @@ class weapon(gameObject):
             return True
         elif kark == "no":
             animate_text("You don't like sharp things, pussy!")
+            return False
+        else:
+            animate_text("haha")
+            return False    
             
 
 
@@ -329,29 +333,49 @@ def animate_text(string, delay = textDelay):
 
 places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
-    "outside": Place("outside", "You are outside the house.", [1, 6], "🟩")
+    "outside": Place("outside", "You are outside the house.", [1, 6], "🟩"),
+    "forest": Place("forest", "You have entered the forest", [0,7],"🟩"),
+    "cave": Place("cave", "Yo is dark here",[8,4],"⬛")
 }
 currentPlace = places["house"]
 
 linkObjects = {
     "door": LinkObject((8,4), "door", "🚪", places["house"], None),
-    "house": LinkObject((0,6), "house", "🏠", places["outside"], None)
+    "house": LinkObject((0,6), "house", "🏠", places["outside"], None),
+    "grass": LinkObject((8,7), "grass", "🟩", places["outside"], None),
+    "black": LinkObject((0,7), "black", "⬛", places["forest"], None),
+    "cave_entrance": LinkObject((4,0),"entrance","⬛", places["forest"], None),
+    "inside_cave": LinkObject((4,8),"cave_exit","⬛", places["cave"], None)
 
 }
     
 links = {
-    "home" : Link(linkObjects["door"], linkObjects["house"], places["outside"])
+    "home" : Link(linkObjects["door"], linkObjects["house"], places["outside"]),
+    "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"]),
+    "forest" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["cave"])
 }
 
 linkObjects["door"].link = links["home"]
 linkObjects["house"].link = links["home"]
-
+linkObjects["grass"].link = links["outside"]
+linkObjects["black"].link = links["outside"]
+linkObjects["cave_entrance"].link = links["forest"]
+linkObjects["inside_cave"].link = links["forest"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
-barn = gameObject(4, 3, "barn", "👦", places["outside"],False)
+barn = gameObject(4, 3, "barn", "👦", places["outside"])
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
+currentPlace = places["house"]
 player.setPlace(currentPlace)
+
+
+stone = gameObject(5,0,"stone", "🪨 ", places["forest"])
+stone2 = gameObject(3,0,"stone","🪨 ", places["forest"])
+trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
+tree = Path("🌲","",trees,places["forest"])
+
+
 
 #Making the lake and bridge
 offset = [5,0]
