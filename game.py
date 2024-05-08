@@ -338,7 +338,8 @@ places = {
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩"),
     "forest": Place("forest", "You have entered the forest", [0,7],"🟩"),
     "cave": Place("cave", "Yo is dark here",[8,4],"⬛"),
-    "hut": Place("hut", "this is nasty", [0,5],"🟫")
+    "hut": Place("hut", "this is nasty", [0,5],"🟫"),
+    "Deap_forets": Place("deep_forest", "this is deep", [0,7],"🟩")
 }
 currentPlace = places["house"]
 
