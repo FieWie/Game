@@ -360,7 +360,7 @@ linkObjects["black"].link = links["outside"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
-barn = gameObject(4, 3, "barn", "👦", places["outside"])
+barn = gameObject(4, 3, "barn", "👦", places["outside"], False)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],10)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
