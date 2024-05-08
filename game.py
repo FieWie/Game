@@ -102,13 +102,12 @@ class Link:
 
 
 class Path():
-    def __init__(self, path_emoji, bridge_emoji, nodes, place, is_interactable):
+    def __init__(self, path_emoji, bridge_emoji, nodes, place):
         self.path_emoji = path_emoji
         self.bridge_emoji = bridge_emoji
         self.nodes = nodes
         self.place = place
         self.path = self.make_path()
-        self.is_interactable = is_interactable
     
     def make_path(self):
         path = []
@@ -122,8 +121,7 @@ class Path():
             if isinstance(collide_obj, Lake):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
-        var = self.nodes
-        block = gameObject(block[0], block[1], "path", emoji, self.place, var)
+        block = gameObject(block[0], block[1], "path", emoji, self.place, True)
         return path 
 
     
@@ -380,7 +378,7 @@ player.setPlace(currentPlace)
 stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
-tree = Path("🌲","",trees,places["forest"],True)
+tree = Path("🌲","",trees,places["forest"])
 
 
 
@@ -394,7 +392,7 @@ for x in range(2):
         lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
 
 nodes = [[1,6], [3,6], [3,7], [8,7]]
-path = Path("⬛", "🟫", nodes, places["outside"], False)
+path = Path("⬛", "🟫", nodes, places["outside"])
 
 def main():
     animate_text("Welcome to the game!", textDelay)
