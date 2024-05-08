@@ -32,7 +32,7 @@ class Place:
 class gameObject:
 
     isactive = True
-    def __init__(self, x, y, name, emoji, place,is_interactable, sortlayer = 1, deadEmoji = "💀", ):
+    def __init__(self, x, y, name, emoji, place, sortlayer = 1, deadEmoji = "💀"):
         self.x = x
         self.y = y
         self.name = name
@@ -40,7 +40,6 @@ class gameObject:
         self.place = place
         self.sortlayer = sortlayer
         self.deadEmoji = deadEmoji
-        self.is_interactable = is_interactable
 
         place.addObject(self)
         
@@ -63,12 +62,17 @@ class gameObject:
             self.place = None
         else:
             print("Object is not placed anywhere.")
-    def interact(self):
-        return self.is_interactable
+
+    def deleteObject(self):
+        if self.place:
+            self.place.removeObject(self)
+            self.place = None
+        else:
+            print("Object is not placed anywhere.")
 
 class LinkObject(gameObject):
     def __init__(self, position: Tuple[int, int], name, emoji, place, link):
-        super().__init__(position[0], position[1], name, emoji, place,True, 1)
+        super().__init__(position[0], position[1], name, emoji, place, 1)
         self.link = link
 
     def interact(self):
@@ -121,7 +125,7 @@ class Path():
             if isinstance(collide_obj, Lake):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
-        block = gameObject(block[0], block[1], "path", emoji, self.place, True)
+            block = gameObject(block[0], block[1], "path", emoji, self.place)
         return path 
 
     
@@ -143,7 +147,7 @@ class Path():
 
 class weapon(gameObject):
     def __init__(self, damage, durability, x, y, name, emoji, place, sortlayer):
-        super().__init__(x, y, name, emoji, place,True,sortlayer)
+        super().__init__(x, y, name, emoji, place,sortlayer)
         self.damage = damage
         self.durability = durability
 
@@ -173,7 +177,7 @@ def convertTuple(tup):
 
 class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, sortlayer):
-        super().__init__(x, y, name, emoji, place,True,sortlayer)
+        super().__init__(x, y, name, emoji, place,sortlayer)
     
     has_sword = False
 
@@ -194,7 +198,7 @@ class Player(gameObject):
             newY -= 1
         elif move == "d" and y < grid_size - 1:
             newY += 1
-        collided_obj = gameObject
+
         collided_obj = check_collision(newX,newY, currentPlace)
         if collided_obj:
             # Handle collision based on object type
@@ -214,8 +218,7 @@ class Player(gameObject):
                 collided_obj.weapon_pickup()
                 
                 player.setPosition(newX, newY)
-            elif collided_obj.interact():
-                print("collide with obj")
+            elif isinstance(collided_obj, gameObject):
                 player.setPosition(newX, newY)
         else:
             player.setPosition(newX, newY)
@@ -271,7 +274,7 @@ class Player(gameObject):
 
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place, health):
-        super().__init__(x, y, name, emoji, place,is_interactable = True, sortlayer=2)
+        super().__init__(x, y, name, emoji, place, sortlayer=2)
         self.health = health
     rörelse_riktning = 1
     def monkey_run(self):
@@ -293,7 +296,7 @@ class Enemy(gameObject):
     
 class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place):
-        super().__init__(x, y, name, emoji, place,True, sortlayer=0)
+        super().__init__(x, y, name, emoji, place, sortlayer=0)
         # Additional enemy-specific attributes or methods can be added here
 
 def check_collision(x, y, place):
@@ -334,7 +337,8 @@ places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩"),
     "forest": Place("forest", "You have entered the forest", [0,7],"🟩"),
-    "cave": Place("cave", "Yo is dark here",[8,4],"⬛")
+    "cave": Place("cave", "Yo is dark here",[8,4],"⬛"),
+    "hut": Place("hut", "this is nasty", [0,5],"🟫")
 }
 currentPlace = places["house"]
 
@@ -343,24 +347,32 @@ linkObjects = {
     "house": LinkObject((0,6), "house", "🏠", places["outside"], None),
     "grass": LinkObject((8,7), "grass", "🟩", places["outside"], None),
     "black": LinkObject((0,7), "black", "⬛", places["forest"], None),
-    "cave_entrance": LinkObject((4,0),"entrance","⬛", places["forest"], None)
-
+    "cave_entrance": LinkObject((4,0),"entrance","⬛", places["forest"], None),
+    "inside_cave": LinkObject((4,8),"cave_exit","⬛", places["cave"], None),
+    "hut_outside": LinkObject((3,3),"entrance_hut","🛖 ",places["forest"],None),
+    "inside_hut": LinkObject((8,4),"exit_hut","⬛",places["hut"],None)
 }
     
 links = {
     "home" : Link(linkObjects["door"], linkObjects["house"], places["outside"]),
-    "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"])
+    "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"]),
+    "forest" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["forest"]),
+    "cave" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["cave"]),
+    "hut" : Link(linkObjects["hut_outside"],linkObjects["inside_hut"], places["forest"])
 }
 
 linkObjects["door"].link = links["home"]
 linkObjects["house"].link = links["home"]
 linkObjects["grass"].link = links["outside"]
 linkObjects["black"].link = links["outside"]
-
+linkObjects["cave_entrance"].link = links["forest"]
+linkObjects["inside_cave"].link = links["forest"]
+linkObjects["inside_hut"].link = links["hut"]
+linkObjects["hut_outside"].link = links["hut"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
-barn = gameObject(4, 3, "barn", "👦", places["outside"], False)
+barn = gameObject(4, 3, "barn", "👦", places["outside"])
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],10)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
 currentPlace = places["house"]
@@ -385,6 +397,7 @@ for x in range(2):
 
 nodes = [[1,6], [3,6], [3,7], [8,7]]
 path = Path("⬛", "🟫", nodes, places["outside"])
+
 
 def main():
     animate_text("Welcome to the game!", textDelay)
