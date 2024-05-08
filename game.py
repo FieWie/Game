@@ -336,7 +336,8 @@ places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩"),
     "forest": Place("forest", "You have entered the forest", [0,7],"🟩"),
-    "cave": Place("cave", "Yo is dark here",[8,4],"⬛")
+    "cave": Place("cave", "Yo is dark here",[8,4],"⬛"),
+    "hut": Place("hut", "this is nasty", [0,5],"🟫")
 }
 currentPlace = places["house"]
 
@@ -346,14 +347,17 @@ linkObjects = {
     "grass": LinkObject((8,7), "grass", "🟩", places["outside"], None),
     "black": LinkObject((0,7), "black", "⬛", places["forest"], None),
     "cave_entrance": LinkObject((4,0),"entrance","⬛", places["forest"], None),
-    "inside_cave": LinkObject((4,8),"cave_exit","⬛", places["cave"], None)
-
+    "inside_cave": LinkObject((4,8),"cave_exit","⬛", places["cave"], None),
+    "hut_outside": LinkObject((3,3),"entrance_hut","🛖 ",places["forest"],None),
+    "inside_hut": LinkObject((8,4),"exit_hut","⬛",places["hut"],None)
 }
     
 links = {
     "home" : Link(linkObjects["door"], linkObjects["house"], places["outside"]),
     "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"]),
-    "forest" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["cave"])
+    "forest" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["forest"]),
+    "cave" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["cave"]),
+    "hut" : Link(linkObjects["hut_outside"],linkObjects["inside_hut"], places["forest"])
 }
 
 linkObjects["door"].link = links["home"]
@@ -362,6 +366,8 @@ linkObjects["grass"].link = links["outside"]
 linkObjects["black"].link = links["outside"]
 linkObjects["cave_entrance"].link = links["forest"]
 linkObjects["inside_cave"].link = links["forest"]
+linkObjects["inside_hut"].link = links["hut"]
+linkObjects["hut_outside"].link = links["hut"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
