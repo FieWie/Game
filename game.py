@@ -30,14 +30,14 @@ class Place:
         return self.objects
 
 class gameObject:
-
     isactive = True
-    def __init__(self, x, y, name, emoji, place, sortlayer = 1, deadEmoji = "💀"):
+    def __init__(self, x, y, name, emoji, place, can_collide, sortlayer = 1, deadEmoji = "💀"):
         self.x = x
         self.y = y
         self.name = name
         self.emoji = emoji
         self.place = place
+        self.can_collide = can_collide
         self.sortlayer = sortlayer
         self.deadEmoji = deadEmoji
 
@@ -69,10 +69,15 @@ class gameObject:
             self.place = None
         else:
             print("Object is not placed anywhere.")
+    
+    def interact(self):
+        return self.can_collide
+        
+
 
 class LinkObject(gameObject):
     def __init__(self, position: Tuple[int, int], name, emoji, place, link):
-        super().__init__(position[0], position[1], name, emoji, place, 1)
+        super().__init__(position[0], position[1], name, emoji, place,True, 1)
         self.link = link
 
     def interact(self):
@@ -106,13 +111,15 @@ class Link:
 
 
 class Path():
-    def __init__(self, path_emoji, bridge_emoji, nodes, place):
+    def __init__(self, path_emoji, bridge_emoji, nodes, place, collision):
         self.path_emoji = path_emoji
         self.bridge_emoji = bridge_emoji
         self.nodes = nodes
         self.place = place
+        self.collision = collision  # Define collision attribute
         self.path = self.make_path()
-    
+
+    #Makes path
     def make_path(self):
         path = []
         for i in range(len(self.nodes) - 1):
@@ -125,9 +132,8 @@ class Path():
             if isinstance(collide_obj, Lake):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
-            block = gameObject(block[0], block[1], "path", emoji, self.place)
+            block = gameObject(block[0], block[1], "path", emoji, self.place, self.collision)
         return path 
-
     
     def interpolate_points(self, x1, y1, x2, y2):
         path = []
@@ -143,15 +149,16 @@ class Path():
             print("Error: line not straight like me =$ ")
             exit() 
         return path
+    
 
 
 class weapon(gameObject):
-    def __init__(self, damage, durability, x, y, name, emoji, place, sortlayer):
-        super().__init__(x, y, name, emoji, place,sortlayer)
+    def __init__(self, damage, durability, x, y, name, emoji, place,collision, sortlayer):
+        super().__init__(x, y, name, emoji, place,collision,sortlayer)
         self.damage = damage
         self.durability = durability
 
-    def weapon_pickup(self):
+    def interact(self):
         kark = input()
         if kark == "yes":
             bla =  convertTuple(("you have picked up ", self.name))
@@ -176,8 +183,8 @@ def convertTuple(tup):
     return str
 
 class Player(gameObject):
-    def __init__(self, x, y, name, emoji, place, sortlayer):
-        super().__init__(x, y, name, emoji, place,sortlayer)
+    def __init__(self, x, y, name, emoji, place, collision, sortlayer):
+        super().__init__(x, y, name, emoji, place,collision,sortlayer)
     
     has_sword = False
 
@@ -200,6 +207,7 @@ class Player(gameObject):
             newY += 1
 
         collided_obj = check_collision(newX,newY, currentPlace)
+        print("collision object: ", collided_obj)
         if collided_obj:
             # Handle collision based on object type
             if isinstance(collided_obj, LinkObject):
@@ -215,10 +223,10 @@ class Player(gameObject):
                 exit()
             elif isinstance(collided_obj, weapon):
                 animate_text("Would you like to pick up the woden sword yes or no:")
-                collided_obj.weapon_pickup()
+                collided_obj.interact()
                 
                 player.setPosition(newX, newY)
-            elif isinstance(collided_obj, gameObject):
+            elif isinstance(collided_obj, gameObject) and check_collision(newX,newY, currentPlace) and collided_obj.interact():
                 player.setPosition(newX, newY)
         else:
             player.setPosition(newX, newY)
@@ -273,8 +281,8 @@ class Player(gameObject):
             return False  
 
 class Enemy(gameObject):
-    def __init__(self, x, y, name, emoji, place, health):
-        super().__init__(x, y, name, emoji, place, sortlayer=2)
+    def __init__(self, x, y, name, emoji, place, collision,health):
+        super().__init__(x, y, name, emoji, place, collision, sortlayer=2)
         self.health = health
     rörelse_riktning = 1
     def monkey_run(self):
@@ -287,23 +295,23 @@ class Enemy(gameObject):
         self.health -= amount
         if self.health <= 0:
             self.health = 0  # Säkerställ att hälsan inte går under noll
-                    
 
-    
     def deleteObject(self):
         self.isactive = False
         self.emoji = self.deadEmoji
+        self.can_collide = False
     
 class Lake(gameObject):
-    def __init__(self, x, y, name, emoji, place):
-        super().__init__(x, y, name, emoji, place, sortlayer=0)
+    def __init__(self, x, y, name, emoji, place, collision):
+        super().__init__(x, y, name, emoji, place,collision, sortlayer=0)
         # Additional enemy-specific attributes or methods can be added here
 
-def check_collision(x, y, place):
-        for obj in place.getObjects():
+#Checks the mainobject if there is one and returns.  
+def check_collision(x,y, place):
+    for obj in place.getObjects():
             if obj.getPosition() == [x, y]:
                 return obj
-        return None
+    return None
 
 def print_grid():
     print("\n" * 10)
@@ -370,33 +378,33 @@ linkObjects["inside_cave"].link = links["forest"]
 linkObjects["inside_hut"].link = links["hut"]
 linkObjects["hut_outside"].link = links["hut"]
 
-enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
-player = Player(4, 5, "player", "🈸", places["house"],10)
-barn = gameObject(4, 3, "barn", "👦", places["outside"])
-orge = Enemy(5,3, "orge","🧌 ",places["forest"],10)
-wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],0)
+enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],True,2)
+player = Player(4, 5, "player", "🈸", places["house"],True,10)
+barn = gameObject(4, 3, "barn", "👦", places["outside"],True)
+orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,10)
+wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
 
-stone = gameObject(5,0,"stone", "🪨 ", places["forest"])
-stone2 = gameObject(3,0,"stone","🪨 ", places["forest"])
+stone = gameObject(5,0,"stone", "🪨 ", places["forest"],True)
+stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],True)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
-tree = Path("🌲","",trees,places["forest"])
+tree = Path("🌲","",trees,places["forest"], False)
 
 
 
-#Making the lake and bridge
+#Making the lake
 offset = [5,0]
 for x in range(2):
     for y in range(9):
         xOffset = x +offset[0]
         yOffset = y +offset[1]
         name = "lake" + str(xOffset) + str(yOffset)
-        lake = Lake(xOffset,yOffset,name,"🟦", places["outside"])
+        lake = Lake(xOffset,yOffset,name,"🟦", places["outside"], True)
 
 nodes = [[1,6], [3,6], [3,7], [8,7]]
-path = Path("⬛", "🟫", nodes, places["outside"])
+path = Path("⬛", "🟫", nodes, places["outside"], True)
 
 
 def main():
