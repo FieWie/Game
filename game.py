@@ -91,7 +91,7 @@ class Link:
         self.destination = destination
 
     def interact(self):
-        global currentPlace
+        global currentPlace  
         currentlinkobject = LinkObject
         currentPlace.removeObject(player)
         if currentPlace == self.linkObject1.place:
@@ -146,8 +146,9 @@ class Path():
             for x in range(min(x1, x2), max(x1, x2) + 1):
                 path.append([x, y1])
         else:  # Diagonal line (assuming 45 degrees)
-            print("Error: line not straight like me =$ ")
-            exit() 
+            for x in range(min(x1, x2), max(x1, x2) + 1):
+                for y in range(min(y1, y2), max(y1, y2) + 1):
+                    path.append([x, y])
         return path
     
 
@@ -159,6 +160,7 @@ class weapon(gameObject):
         self.durability = durability
 
     def interact(self):
+        animate_text("Would you like to pick up the woden sword yes or no:")
         kark = input()
         if kark == "yes":
             bla =  convertTuple(("you have picked up ", self.name))
@@ -207,29 +209,12 @@ class Player(gameObject):
             newY += 1
 
         collided_obj = check_collision(newX,newY, currentPlace)
-        
         if collided_obj:
-            # Handle collision based on object type
-            if isinstance(collided_obj, LinkObject):
+            if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
+                player.setPosition(newX, newY)
                 collided_obj.interact()
-            elif isinstance(collided_obj, Enemy) and collided_obj.isactive:
-                animate_text("You encountered an enemy!",textDelay)
-                if not self.FightEnemy():
-                    newX, newY = x,y
-            elif isinstance(collided_obj, Lake):
-                player.setPosition(newX, newY)
-                animate_text("You can't swim you idiot", textDelay)
-                self.youded()
-                exit()
-            elif isinstance(collided_obj, weapon):
-                animate_text("Would you like to pick up the woden sword yes or no:")
-                collided_obj.interact()
-                
-                player.setPosition(newX, newY)
-            elif isinstance(collided_obj, gameObject) and check_collision(newX,newY, currentPlace) and collided_obj.interact():
-                player.setPosition(newX, newY)
         else:
-            player.setPosition(newX, newY)
+            player.setPosition(newX, newY)      
         return True
     
     def youded(self):
@@ -240,13 +225,38 @@ class Player(gameObject):
                 else:
                     print("⬛", end=" ")
             print()  
+        exit()
+
+class Enemy(gameObject):
+    def __init__(self, x, y, name, emoji, place, collision,health):
+        super().__init__(x, y, name, emoji, place, collision, sortlayer=2)
+        self.health = health
+    rörelse_riktning = 1
+    def monkey_run(self):
+        self.y += self.rörelse_riktning
+        if self.y == 0 or self.y == grid_size - 1:
+        # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
+            self.rörelse_riktning *= -1
+        # Additional enemy-specific attributes or methods can be added here
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health <= 0:
+            self.health = 0  # Säkerställ att hälsan inte går under noll
+
+    def deleteObject(self):
+        self.isactive = False
+        self.emoji = self.deadEmoji
+        self.can_collide = False
+    
+    def interact(self):
+        self.FightEnemy()
 
     def FightEnemy(self):
         string = "Want to fight the "+self.name + " yes or no: "
         animate_text(string, textDelay)
         fight = input()
         if fight == "yes":
-            if not self.has_sword:  # Kontrollerar om spelaren har svärdet
+            if not player.has_sword:  # Kontrollerar om spelaren har svärdet
                 animate_text("You can't fight without a weapon!", textDelay)
                 return False
         
@@ -273,7 +283,7 @@ class Player(gameObject):
                 self.emoji = "💀"
                 time.sleep(2)
                 animate_text("you died", textDelay)
-                self.youded()
+                player.youded()
                 exit()
             return True
             
@@ -281,31 +291,15 @@ class Player(gameObject):
             animate_text("nice", textDelay)  
             return False  
 
-class Enemy(gameObject):
-    def __init__(self, x, y, name, emoji, place, collision,health):
-        super().__init__(x, y, name, emoji, place, collision, sortlayer=2)
-        self.health = health
-    rörelse_riktning = 1
-    def monkey_run(self):
-        self.y += self.rörelse_riktning
-        if self.y == 0 or self.y == grid_size - 1:
-        # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
-            self.rörelse_riktning *= -1
-        # Additional enemy-specific attributes or methods can be added here
-    def take_damage(self, amount):
-        self.health -= amount
-        if self.health <= 0:
-            self.health = 0  # Säkerställ att hälsan inte går under noll
-
-    def deleteObject(self):
-        self.isactive = False
-        self.emoji = self.deadEmoji
-        self.can_collide = False
     
 class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place, collision):
         super().__init__(x, y, name, emoji, place,collision, sortlayer=0)
         # Additional enemy-specific attributes or methods can be added here
+
+    def interact(self):
+        animate_text("You can't swim you idiot", textDelay)
+        player.youded()
 
 #Checks the mainobject if there is one and returns.  
 def check_collision(x,y, place):
@@ -389,7 +383,7 @@ enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],True,2)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"],True)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,10)
-Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],False,100)
+Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,100)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
@@ -401,13 +395,12 @@ trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
 tree = Path("🌲","",trees,places["forest"], False)
 
 rode = [[7,8],[7,7]]
-rodes = Path("🟫","",rode,places["deep_forest"], True)
+rodes = Path("🟫","",rode,places["deep_forest"], False)
 forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
 for tree in forest_trees:
     forest_tree = gameObject(tree[0],tree[1],"tree", "🌲",places["deep_forest"],False)
 
 
-#Making the lake
 offset = [5,0]
 for x in range(2):
     for y in range(9):
