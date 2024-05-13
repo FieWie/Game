@@ -338,7 +338,8 @@ places = {
     "outside": Place("outside", "You are outside the house.", [1, 6], "🟩"),
     "forest": Place("forest", "You have entered the forest", [0,7],"🟩"),
     "cave": Place("cave", "Yo is dark here",[8,4],"⬛"),
-    "hut": Place("hut", "this is nasty", [0,5],"🟫")
+    "hut": Place("hut", "this is nasty", [0,5],"🟫"),
+    "deep_forest": Place("Deep_forest", "this is deep", [0,7],"🟩")
 }
 currentPlace = places["house"]
 
@@ -350,7 +351,9 @@ linkObjects = {
     "cave_entrance": LinkObject((4,0),"entrance","⬛", places["forest"], None),
     "inside_cave": LinkObject((4,8),"cave_exit","⬛", places["cave"], None),
     "hut_outside": LinkObject((3,3),"entrance_hut","🛖 ",places["forest"],None),
-    "inside_hut": LinkObject((8,4),"exit_hut","⬛",places["hut"],None)
+    "inside_hut": LinkObject((8,4),"exit_hut","⬛",places["hut"],None),
+    "Deep_forest_entrance": LinkObject((8,7),"Deep_forest_entrance","🟩",places["forest"],None),
+    "Deep_forest_exit": LinkObject((0,7),"Deep_forest_exit","🟩",places["deep_forest"],None)
 }
     
 links = {
@@ -358,7 +361,8 @@ links = {
     "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"]),
     "forest" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["forest"]),
     "cave" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["cave"]),
-    "hut" : Link(linkObjects["hut_outside"],linkObjects["inside_hut"], places["forest"])
+    "hut" : Link(linkObjects["hut_outside"],linkObjects["inside_hut"], places["forest"]),
+    "deep_forest" : Link(linkObjects["Deep_forest_entrance"], linkObjects["Deep_forest_exit"], places["deep_forest"])
 }
 
 linkObjects["door"].link = links["home"]
@@ -369,6 +373,8 @@ linkObjects["cave_entrance"].link = links["forest"]
 linkObjects["inside_cave"].link = links["forest"]
 linkObjects["inside_hut"].link = links["hut"]
 linkObjects["hut_outside"].link = links["hut"]
+linkObjects["Deep_forest_entrance"].link = links["deep_forest"]
+linkObjects["Deep_forest_exit"].link = links["deep_forest"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],2)
 player = Player(4, 5, "player", "🈸", places["house"],10)
