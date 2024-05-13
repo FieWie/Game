@@ -207,7 +207,7 @@ class Player(gameObject):
             newY += 1
 
         collided_obj = check_collision(newX,newY, currentPlace)
-        print("collision object: ", collided_obj)
+        
         if collided_obj:
             # Handle collision based on object type
             if isinstance(collided_obj, LinkObject):
@@ -242,7 +242,8 @@ class Player(gameObject):
             print()  
 
     def FightEnemy(self):
-        animate_text("Want to fight the monster yes or no: ", textDelay)
+        string = "Want to fight the "+self.name + " yes or no: "
+        animate_text(string, textDelay)
         fight = input()
         if fight == "yes":
             if not self.has_sword:  # Kontrollerar om spelaren har svärdet
@@ -388,16 +389,22 @@ enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],True,2)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"],True)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,10)
+Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],False,100)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
 
-stone = gameObject(5,0,"stone", "🪨 ", places["forest"],True)
-stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],True)
+stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
+stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
 tree = Path("🌲","",trees,places["forest"], False)
 
+rode = [[7,8],[7,7]]
+rodes = Path("🟫","",rode,places["deep_forest"], True)
+forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
+for tree in forest_trees:
+    forest_tree = gameObject(tree[0],tree[1],"tree", "🌲",places["deep_forest"],False)
 
 
 #Making the lake
