@@ -288,40 +288,48 @@ class Enemy(gameObject):
         self.FightEnemy()
 
     def FightEnemy(self):
-        string = "Want to fight the "+player.name + " yes or no: "
+        string = "Want to fight the "+self.name + " yes or no: "
         animate_text(string, textDelay)
         fight = input()
         if fight == "yes":
+        
             if not player.has_sword:  # Kontrollerar om spelaren har svärdet
                 animate_text("You can't fight without a weapon!", textDelay)
                 return False
-        
-            time.sleep(2)
-            animate_text("roll for damage", textDelay)
-            resulat = random.randint(1, 20)
-            resulat = 20
-            animate_text(f"Dice {1}: {resulat}",textDelay)
-            time.sleep(1)
-
-            if(resulat > 10):
-                self.take_damage(player.current_weapon.damage)  # Applicera vapnets skada på fienden
-                if self.health <= 0:
-                    self.deleteObject()
-                    animate_text("You have succesfully killed the monster", textDelay)
-                    self.emoji = "💀"
-                    for i in range(grid_size):
-                        for j in range(grid_size):
-                            if [i, j] == self:
-                                print("💀", end=" ")       
-                else:
-                    animate_text(f"You dealt {player.current_weapon.damage} damage to the {self.name}", textDelay)  
-            else:
-                player.emoji = "💀"
+            while True:
                 time.sleep(2)
-                animate_text("you died", textDelay)
-                player.youded()
-                exit()
-            return True
+                animate_text("roll for damage", textDelay)
+                resulat = random.randint(1, 20)
+                resulat = 20
+                animate_text(f"Dice {1}: {resulat}",textDelay)
+                time.sleep(1)
+
+                if(resulat > 10):
+                    self.take_damage(player.current_weapon.damage)  # Applicera vapnets skada på fienden
+                    if self.health <= 0:
+                        animate_text(f"You dealt {player.current_weapon.damage} damage to the {self.name}", textDelay)
+                        self.deleteObject()
+                        animate_text("You have succesfully killed the "+self.name, textDelay)
+                        self.emoji = "💀"
+                        
+                        break       
+                    else:
+                        animate_text(f"You dealt {player.current_weapon.damage} damage to the {self.name}", textDelay)
+                        animate_text("Would you like to continue to fight yes or no", textDelay)
+                        continues = input()
+                        if continues == "yes":
+                            continue
+                        elif continues == "no":
+                            break
+                        else:
+                            animate_text("Type it right next time", textDelay)
+                else:
+                    player.emoji = "💀"
+                    time.sleep(2)
+                    animate_text("you died", textDelay)
+                    player.youded()
+                    exit()
+                
             
         elif fight == "no":
             animate_text("nice", textDelay)  
@@ -421,7 +429,7 @@ linkObjects["Deep_forest_exit"].link = links["deep_forest"]
 linkObjects["town_entrance"].link = links["town"]
 linkObjects["town_exit"].link = links["town"]
 
-enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,2)
+enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
@@ -438,9 +446,11 @@ tree = Path("🌲","",trees,places["forest"], False)
 town_path = [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[8,7],[7,7],[0,7],[6,4],[5,4],[4,4]]
 for yas in town_path:
     town_paths = gameObject(yas[0],yas[1],"path", "🟫",places["town"],True)
-houses = [[5,3]]
+houses = [[4,2],[0,0]]
+for house in houses:
+    housess = gameObject(house[0],house[1],"house","🏠",places["town"],False)
 rode = [[7,8],[7,7]]
-rodes = Path("🟫","",rode,places["deep_forest"], False)
+rodes = Path("🟫","",rode,places["deep_forest"], True)
 forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
 for tree in forest_trees:
     forest_tree = gameObject(tree[0],tree[1],"tree", "🌲",places["deep_forest"],False)
