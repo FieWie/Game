@@ -157,7 +157,6 @@ class weapon(gameObject):
 
     def interact(self):
         animate_text(f"Would you like to pick up the {self.name} yes or no:")
-        termios.tcflush(sys.stdin, termios.TCIFLUSH)
         kark = input()
         if kark == "yes":
             bla =  convertTuple(("you have picked up ", self.name))
@@ -388,7 +387,8 @@ places = {
     "cave": Place("cave", "Yo is dark here",[8,4],"⬛"),
     "hut": Place("hut", "this is nasty", [0,5],"🟫"),
     "deep_forest": Place("Deep_forest", "this is deep", [0,7],"🟩"),
-    "town": Place("town", "YOOOO",[7,0],"🟩")
+    "town": Place("town", "YOOOO",[7,0],"🟩"),
+    "farm":Place("farm","konrad love this",[0,7],"🟩")
 }
 currentPlace = places["house"]
 
@@ -404,7 +404,9 @@ linkObjects = {
     "Deep_forest_entrance": LinkObject((8,7),"Deep_forest_entrance","⬛",places["forest"],None),
     "Deep_forest_exit": LinkObject((0,7),"Deep_forest_exit","⬛",places["deep_forest"],None),
     "town_entrance": LinkObject((7,8),"town_entrace","🟫",places["deep_forest"],None),
-    "town_exit": LinkObject((7,0),"town_exit","🟫",places["town"],None)
+    "town_exit": LinkObject((7,0),"town_exit","🟫",places["town"],None),
+    "farm_entrance": LinkObject((8,7),"farm_entrance","🟫",places["town"],None),
+    "farm_exit": LinkObject((0,7),"farm_exit","🟫",places["farm"],None)
 }
     
 links = {
@@ -414,7 +416,8 @@ links = {
     "cave" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["cave"]),
     "hut" : Link(linkObjects["hut_outside"],linkObjects["inside_hut"], places["forest"]),
     "deep_forest" : Link(linkObjects["Deep_forest_entrance"], linkObjects["Deep_forest_exit"], places["deep_forest"]),
-    "town" : Link(linkObjects["town_entrance"], linkObjects["town_exit"], places["town"])
+    "town" : Link(linkObjects["town_entrance"], linkObjects["town_exit"], places["town"]),
+    "farm" : Link(linkObjects["farm_entrance"], linkObjects["farm_exit"], places["farm"])
 }
 
 linkObjects["door"].link = links["home"]
@@ -429,11 +432,14 @@ linkObjects["Deep_forest_entrance"].link = links["deep_forest"]
 linkObjects["Deep_forest_exit"].link = links["deep_forest"]
 linkObjects["town_entrance"].link = links["town"]
 linkObjects["town_exit"].link = links["town"]
+linkObjects["farm_entrance"].link = links["farm"]
+linkObjects["farm_exit"].link = links["farm"]
 
 enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
+Cow = Enemy(5,3,"Cow","🐄",places["farm"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
 currentPlace = places["house"]
@@ -455,7 +461,12 @@ rodes = Path("🟫","",rode,places["deep_forest"], True)
 forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
 for tree in forest_trees:
     forest_tree = gameObject(tree[0],tree[1],"tree", "🌲",places["deep_forest"],False)
-
+farm_path = [[0,7],[7,7]]
+farm_rode = Path("🟫","",farm_path,places["farm"], True)
+Farm_markCheck = [[3,1],[3,6],[6,1],[6,6]]
+farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True)
+farm_mark = [[1,1],[1,6],[2,1],[2,6],[4,1],[4,6],[5,1],[5,6],[7,1],[7,6],[8,1],[8,6]]
+farm_marken = Path("🟨","",farm_mark,places["farm"],True)
 
 offset = [5,0]
 for x in range(2):
@@ -469,6 +480,9 @@ nodes = [[1,6], [3,6], [3,7], [8,7]]
 path = Path("⬛", "🟫", nodes, places["outside"], True)
 
 
+
+
+currentPlace = places["farm"]
 def main():
     animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
@@ -484,3 +498,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
