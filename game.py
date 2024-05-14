@@ -483,7 +483,7 @@ path = Path("⬛", "🟫", nodes, places["outside"], True)
 
 
 
-currentPlace = places["farm"]
+
 def main():
     animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
