@@ -157,7 +157,6 @@ class weapon(gameObject):
 
     def interact(self):
         animate_text(f"Would you like to pick up the {self.name} yes or no:")
-        termios.tcflush(sys.stdin, termios.TCIFLUSH)
         kark = input()
         if kark == "yes":
             bla =  convertTuple(("you have picked up ", self.name))
