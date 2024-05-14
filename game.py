@@ -157,6 +157,8 @@ class weapon(gameObject):
         super().__init__(x, y, name, emoji, place,collision,sortlayer)
         self.damage = damage
         self.durability = durability
+        player.current_weapon = None
+        self.current_name = None
 
     def interact(self):
         kark = input()
@@ -165,6 +167,7 @@ class weapon(gameObject):
             animate_text(bla)
             self.deleteObject()
             player.has_sword = True
+            player.current_weapon = self
             return True
         elif kark == "no":
             animate_text("You don't like sharp things, pussy!")
@@ -185,7 +188,7 @@ def convertTuple(tup):
 class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, collision, sortlayer):
         super().__init__(x, y, name, emoji, place,collision,sortlayer)
-    
+        self.current_weapon = None
     has_sword = False
 
     def move_player(self):
@@ -258,7 +261,7 @@ class Player(gameObject):
             time.sleep(1)
 
             if(resulat > 10):
-                enemy.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
+                enemy.take_damage(self.current_weapon.damage)  # Applicera vapnets skada på fienden
                 if enemy.health <= 0:
                     enemy.deleteObject()
                     animate_text("You have succesfully killed the monster", textDelay)
@@ -268,7 +271,7 @@ class Player(gameObject):
                             if [i, j] == enemy:
                                 print("💀", end=" ")       
                 else:
-                    animate_text(f"You dealt {wodden_sword.damage} damage to the enemy", textDelay)  
+                    animate_text(f"You dealt {self.current_weapon.damage} damage to the enemy", textDelay)  
             else:
                 self.emoji = "💀"
                 time.sleep(2)
@@ -301,6 +304,7 @@ class Enemy(gameObject):
         self.isactive = False
         self.emoji = self.deadEmoji
         self.can_collide = False
+
     
 class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place, collision):
@@ -391,6 +395,7 @@ barn = gameObject(4, 3, "barn", "👦", places["outside"],True)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,10)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],False,100)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
+knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
