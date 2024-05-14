@@ -425,7 +425,6 @@ linkObjects["town_exit"].link = links["town"]
 
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],True,2)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
-barn = gameObject(4, 3, "barn", "👦", places["outside"],True)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
