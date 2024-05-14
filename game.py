@@ -205,11 +205,6 @@ class Player(gameObject):
         if collided_obj:
             if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
                 player.setPosition(newX, newY)
-                animate_text("You can't swim you idiot", textDelay)
-                self.youded()
-                exit()
-            elif isinstance(collided_obj, weapon):
-                animate_text("Would you like to pick up the woden sword yes or no:")
                 collided_obj.interact()
         else:
             player.setPosition(newX, newY)      
@@ -245,10 +240,10 @@ class Player(gameObject):
                 if enemy.health <= 0:
                     enemy.deleteObject()
                     animate_text("You have succesfully killed the monster", textDelay)
-                    enemy.emoji = "💀"
+                    self.emoji = "💀"
                     for i in range(grid_size):
                         for j in range(grid_size):
-                            if [i, j] == enemy:
+                            if [i, j] == self:
                                 print("💀", end=" ")       
                 else:
                     animate_text(f"You dealt {self.current_weapon.damage} damage to the enemy", textDelay)  
@@ -423,11 +418,10 @@ linkObjects["Deep_forest_exit"].link = links["deep_forest"]
 linkObjects["town_entrance"].link = links["town"]
 linkObjects["town_exit"].link = links["town"]
 
-enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],True,2)
+enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,2)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
-barn = gameObject(4, 3, "barn", "👦", places["outside"],True)
-orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,10)
-Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],False,100)
+orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
+Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
 currentPlace = places["house"]
@@ -438,9 +432,10 @@ stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
 tree = Path("🌲","",trees,places["forest"], False)
-town_path = [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[8,7],[7,7],[0,7]]
+town_path = [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[8,7],[7,7],[0,7],[6,4],[5,4],[4,4]]
 for yas in town_path:
     town_paths = gameObject(yas[0],yas[1],"path", "🟫",places["town"],True)
+houses = [[5,3]]
 rode = [[7,8],[7,7]]
 rodes = Path("🟫","",rode,places["deep_forest"], False)
 forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
