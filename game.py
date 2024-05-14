@@ -1,3 +1,4 @@
+from ast import Try
 import random
 from re import S
 import time
@@ -443,10 +444,10 @@ stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
 tree = Path("🌲","",trees,places["forest"], False)
-town_path = [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7],[7,1],[7,2],[7,3],[7,4],[7,5],[7,6],[8,7],[7,7],[0,7],[6,4],[5,4],[4,4]]
-for yas in town_path:
-    town_paths = gameObject(yas[0],yas[1],"path", "🟫",places["town"],True)
-houses = [[4,2],[0,0]]
+town_path_nodes = [[6,1],[7,1],[7,3],[4,3],[7,3],[7,5], [6,5], [7,5], [7,7], [8,7], [0,7]]
+town_path = Path("🟫", "", town_path_nodes, places["town"], True)
+
+houses = [[5,1],[3,3],[5,5] ]
 for house in houses:
     housess = gameObject(house[0],house[1],"house","🏠",places["town"],False)
 rode = [[7,8],[7,7]]
