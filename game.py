@@ -210,11 +210,6 @@ class Player(gameObject):
         if collided_obj:
             if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
                 player.setPosition(newX, newY)
-                animate_text("You can't swim you idiot", textDelay)
-                self.youded()
-                exit()
-            elif isinstance(collided_obj, weapon):
-                animate_text("Would you like to pick up the woden sword yes or no:")
                 collided_obj.interact()
         else:
             player.setPosition(newX, newY)      
@@ -246,14 +241,14 @@ class Player(gameObject):
             time.sleep(1)
 
             if(resulat > 10):
-                enemy.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
-                if enemy.health <= 0:
-                    enemy.deleteObject()
+                self.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
+                if self.health <= 0:
+                    self.deleteObject()
                     animate_text("You have succesfully killed the monster", textDelay)
-                    enemy.emoji = "💀"
+                    self.emoji = "💀"
                     for i in range(grid_size):
                         for j in range(grid_size):
-                            if [i, j] == enemy:
+                            if [i, j] == self:
                                 print("💀", end=" ")       
                 else:
                     animate_text(f"You dealt {wodden_sword.damage} damage to the enemy", textDelay)  
@@ -431,8 +426,8 @@ linkObjects["town_exit"].link = links["town"]
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],True,2)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"],True)
-orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,10)
-Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],False,100)
+orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
+Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
 currentPlace = places["house"]
