@@ -10,7 +10,6 @@ textDelay = .03
 currentPlace = None
 
 
-
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -158,6 +157,7 @@ class weapon(gameObject):
 
     def interact(self):
         animate_text(f"Would you like to pick up the {self.name} yes or no:")
+        termios.tcflush(sys.stdin, termios.TCIFLUSH)
         kark = input()
         if kark == "yes":
             bla =  convertTuple(("you have picked up ", self.name))
@@ -220,7 +220,8 @@ class Player(gameObject):
                     print("💀", end=" ")
                 else:
                     print("⬛", end=" ")
-            print()  
+            print()
+        exit()
 
     def FightEnemy(self):
         string = "Want to fight the "+self.name + " yes or no: "
