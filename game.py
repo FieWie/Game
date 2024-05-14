@@ -1,6 +1,7 @@
 import random
 import time
 from typing import Tuple
+import msvcrt
 
 grid_size = 9
 
@@ -191,7 +192,8 @@ class Player(gameObject):
     has_sword = False
 
     def move_player(self):
-        move = input("Where do you want to go? (w/s/a/d): ").lower()
+        print("Where do you want to go? (w/s/a/d): ")
+        move = msvcrt.getch().decode('utf-8').lower()
         if move == "q":
             print("Exiting the game.")
             return False
@@ -248,7 +250,7 @@ class Enemy(gameObject):
         self.emoji = self.deadEmoji
         self.can_collide = False
     
-    def interact(self):
+    def interact(self ):
         self.FightEnemy()
 
     def FightEnemy(self):
@@ -268,11 +270,11 @@ class Enemy(gameObject):
             time.sleep(1)
 
             if(resulat > 10):
-                enemy.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
-                if enemy.health <= 0:
-                    enemy.deleteObject()
+                self.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
+                if self.health <= 0:
+                    self.deleteObject()
                     animate_text("You have succesfully killed the monster", textDelay)
-                    enemy.emoji = "💀"
+                    self.emoji = "💀"
                     for i in range(grid_size):
                         for j in range(grid_size):
                             if [i, j] == enemy:
@@ -382,8 +384,8 @@ linkObjects["Deep_forest_exit"].link = links["deep_forest"]
 enemy = Enemy(3, 3, "enemy", "🦧", places["outside"],True,2)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 barn = gameObject(4, 3, "barn", "👦", places["outside"],True)
-orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,10)
-Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,100)
+orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
+Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
