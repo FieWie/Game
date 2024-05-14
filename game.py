@@ -1,4 +1,5 @@
 import random
+from re import S
 import time
 from typing import Tuple
 import msvcrt
@@ -156,13 +157,14 @@ class weapon(gameObject):
         self.current_name = None
 
     def interact(self):
-        animate_text("Would you like to pick up the woden sword yes or no:")
+        animate_text(f"Would you like to pick up the {self.name} yes or no:")
         kark = input()
         if kark == "yes":
             bla =  convertTuple(("you have picked up ", self.name))
             animate_text(bla)
             self.deleteObject()
             player.has_sword = True
+            print("pickup sword")
             player.current_weapon = self
             return True
         elif kark == "no":
@@ -177,11 +179,12 @@ def convertTuple(tup):
     return str
 
 class Player(gameObject):
+    has_sword = False
+
     def __init__(self, x, y, name, emoji, place, collision, sortlayer):
         super().__init__(x, y, name, emoji, place,collision,sortlayer)
         self.current_weapon = None
-    has_sword = False
-
+        
     def move_player(self):
         print("Where do you want to go? (w/s/a/d): ")
         move = msvcrt.getch().decode('utf-8').lower()
@@ -236,9 +239,9 @@ class Player(gameObject):
             time.sleep(1)
 
             if(resulat > 10):
-                enemy.take_damage(self.current_weapon.damage)  # Applicera vapnets skada på fienden
-                if enemy.health <= 0:
-                    enemy.deleteObject()
+                self.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
+                if self.health <= 0:
+                    self.deleteObject()
                     animate_text("You have succesfully killed the monster", textDelay)
                     self.emoji = "💀"
                     for i in range(grid_size):
@@ -246,7 +249,7 @@ class Player(gameObject):
                             if [i, j] == self:
                                 print("💀", end=" ")       
                 else:
-                    animate_text(f"You dealt {self.current_weapon.damage} damage to the enemy", textDelay)  
+                    animate_text(f"You dealt {wodden_sword.damage} damage to the enemy", textDelay)  
             else:
                 self.emoji = "💀"
                 time.sleep(2)
@@ -285,7 +288,7 @@ class Enemy(gameObject):
         self.FightEnemy()
 
     def FightEnemy(self):
-        string = "Want to fight the "+self.name + " yes or no: "
+        string = "Want to fight the "+player.name + " yes or no: "
         animate_text(string, textDelay)
         fight = input()
         if fight == "yes":
@@ -301,19 +304,19 @@ class Enemy(gameObject):
             time.sleep(1)
 
             if(resulat > 10):
-                self.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
+                self.take_damage(player.current_weapon.damage)  # Applicera vapnets skada på fienden
                 if self.health <= 0:
                     self.deleteObject()
                     animate_text("You have succesfully killed the monster", textDelay)
                     self.emoji = "💀"
                     for i in range(grid_size):
                         for j in range(grid_size):
-                            if [i, j] == enemy:
+                            if [i, j] == self:
                                 print("💀", end=" ")       
                 else:
-                    animate_text(f"You dealt {wodden_sword.damage} damage to the enemy", textDelay)  
+                    animate_text(f"You dealt {player.current_weapon.damage} damage to the {self.name}", textDelay)  
             else:
-                self.emoji = "💀"
+                player.emoji = "💀"
                 time.sleep(2)
                 animate_text("you died", textDelay)
                 player.youded()
