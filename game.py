@@ -171,11 +171,6 @@ class weapon(gameObject):
         else:
             animate_text("haha")
             return False    
-            
-
-
-    def check_weapon(self):
-        pass
         
 def convertTuple(tup):
     str = "".join(tup)
@@ -246,7 +241,7 @@ class Player(gameObject):
             time.sleep(1)
 
             if(resulat > 10):
-                enemy.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
+                enemy.take_damage(self.current_weapon.damage)  # Applicera vapnets skada på fienden
                 if enemy.health <= 0:
                     enemy.deleteObject()
                     animate_text("You have succesfully killed the monster", textDelay)
@@ -256,7 +251,7 @@ class Player(gameObject):
                             if [i, j] == enemy:
                                 print("💀", end=" ")       
                 else:
-                    animate_text(f"You dealt {wodden_sword.damage} damage to the enemy", textDelay)  
+                    animate_text(f"You dealt {self.current_weapon.damage} damage to the enemy", textDelay)  
             else:
                 self.emoji = "💀"
                 time.sleep(2)
