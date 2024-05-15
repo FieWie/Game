@@ -440,7 +440,7 @@ enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
-Cow = Enemy(5,3,"Cow","🐄",places["farm"],True,2)
+Cow = Enemy(5,3,"Cow","🐄",places["farm"],True,3)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
 currentPlace = places["house"]
@@ -451,10 +451,11 @@ stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
 tree = Path("🌲","",trees,places["forest"], False)
-town_path_nodes = [[6,1],[7,1],[7,3],[4,3],[7,3],[7,5], [6,5], [7,5], [7,7], [8,7], [0,7]]
+town_path_nodes = [[7,1],[7,3],[4,3],[7,3],[7,5], [7,5], [7,7], [8,7], [0,7]]
 town_path = Path("🟫", "", town_path_nodes, places["town"], True)
-
-houses = [[5,1],[3,3],[5,5] ]
+town_path_fix = gameObject(3,3,"town_path_fix","🟫",places["town"],True)
+mansion = gameObject(1,3,"mansion","🛕",places["town"],False)
+houses = [[5,2],[3,2],[5,4],[3,4],[3,6],[5,6],[3,8],[5,8] ]
 for house in houses:
     housess = gameObject(house[0],house[1],"house","🏠",places["town"],False)
 rode = [[7,8],[7,7]]
@@ -466,8 +467,10 @@ farm_path = [[0,7],[7,7]]
 farm_rode = Path("🟫","",farm_path,places["farm"], True)
 Farm_markCheck = [[3,1],[3,6],[6,1],[6,6]]
 farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True)
-farm_mark = [[1,1],[1,6],[2,1],[2,6],[4,1],[4,6],[5,1],[5,6],[7,1],[7,6],[8,1],[8,6]]
+farm_mark = [[1,1],[1,6],[2,1],[2,6],[7,1],[7,6],[8,1],[8,6]]
 farm_marken = Path("🟨","",farm_mark,places["farm"],True)
+farm_mark2 = [[4,1],[4,6],[5,1],[5,6]]
+farm_marken2 = Path("🟨","",farm_mark2,places["farm"],True)
 
 offset = [5,0]
 for x in range(2):
@@ -480,9 +483,7 @@ for x in range(2):
 nodes = [[1,6], [3,6], [3,7], [8,7]]
 path = Path("⬛", "🟫", nodes, places["outside"], True)
 
-
-
-
+currentPlace = places["farm"]
 
 def main():
     animate_text("Welcome to the game!", textDelay)
