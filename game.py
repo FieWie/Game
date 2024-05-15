@@ -106,12 +106,13 @@ class Link:
 
 
 class Path():
-    def __init__(self, path_emoji, bridge_emoji, nodes, place, collision):
+    def __init__(self, path_emoji, bridge_emoji, nodes, place, collision, layer):
         self.path_emoji = path_emoji
         self.bridge_emoji = bridge_emoji
         self.nodes = nodes
         self.place = place
         self.collision = collision  # Define collision attribute
+        self.layer = layer
         self.path = self.make_path()
 
     #Makes path
@@ -127,7 +128,7 @@ class Path():
             if isinstance(collide_obj, Lake):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
-            block = gameObject(block[0], block[1], "path", emoji, self.place, self.collision)
+            block = gameObject(block[0], block[1], "path", emoji, self.place, self.collision, self.layer)
         return path 
     
     def interpolate_points(self, x1, y1, x2, y2):
@@ -450,24 +451,24 @@ player.setPlace(currentPlace)
 stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
-tree = Path("🌲","",trees,places["forest"], False)
+tree = Path("🌲","",trees,places["forest"], False, 1)
 town_path_nodes = [[6,1],[7,1],[7,3],[4,3],[7,3],[7,5], [6,5], [7,5], [7,7], [8,7], [0,7]]
-town_path = Path("🟫", "", town_path_nodes, places["town"], True)
+town_path = Path("🟫", "", town_path_nodes, places["town"], True, 1)
 
 houses = [[5,1],[3,3],[5,5] ]
 for house in houses:
     housess = gameObject(house[0],house[1],"house","🏠",places["town"],False)
 rode = [[7,8],[7,7]]
-rodes = Path("🟫","",rode,places["deep_forest"], True)
+rodes = Path("🟫","",rode,places["deep_forest"], True, 1)
 forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
 for tree in forest_trees:
     forest_tree = gameObject(tree[0],tree[1],"tree", "🌲",places["deep_forest"],False)
 farm_path = [[0,7],[7,7]]
-farm_rode = Path("🟫","",farm_path,places["farm"], True)
+farm_rode = Path("🟫","",farm_path,places["farm"], True, .1)
 Farm_markCheck = [[3,1],[3,6],[6,1],[6,6]]
-farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True)
+farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True, .2)
 farm_mark = [[1,1],[1,6],[2,1],[2,6],[4,1],[4,6],[5,1],[5,6],[7,1],[7,6],[8,1],[8,6]]
-farm_marken = Path("🟨","",farm_mark,places["farm"],True)
+farm_marken = Path("🟨","",farm_mark,places["farm"],True, .1)
 
 offset = [5,0]
 for x in range(2):
@@ -478,7 +479,7 @@ for x in range(2):
         lake = Lake(xOffset,yOffset,name,"🟦", places["outside"], True)
 
 nodes = [[1,6], [3,6], [3,7], [8,7]]
-path = Path("⬛", "🟫", nodes, places["outside"], True)
+path = Path("⬛", "🟫", nodes, places["outside"], True, 1)
 
 
 
