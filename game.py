@@ -9,7 +9,9 @@ grid_size = 9
 
 textDelay = .03
 currentPlace = None
-
+def roll_d20():
+    directions = ["a", "d", "s", "w"]
+    return random.choice(directions)
 
 class Place:
     def __init__(self, name, description, player_start, emoji):
@@ -106,12 +108,13 @@ class Link:
 
 
 class Path():
-    def __init__(self, path_emoji, bridge_emoji, nodes, place, collision):
+    def __init__(self, path_emoji, bridge_emoji, nodes, place, collision, layer):
         self.path_emoji = path_emoji
         self.bridge_emoji = bridge_emoji
         self.nodes = nodes
         self.place = place
         self.collision = collision  # Define collision attribute
+        self.layer = layer
         self.path = self.make_path()
 
     #Makes path
@@ -127,7 +130,7 @@ class Path():
             if isinstance(collide_obj, Lake):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
-            block = gameObject(block[0], block[1], "path", emoji, self.place, self.collision)
+            block = gameObject(block[0], block[1], "path", emoji, self.place, self.collision, self.layer)
         return path 
     
     def interpolate_points(self, x1, y1, x2, y2):
@@ -283,7 +286,21 @@ class Enemy(gameObject):
         self.isactive = False
         self.emoji = self.deadEmoji
         self.can_collide = False
+    def cow_walk(self):
+        if not self.isactive:
+            return
+        walk = roll_d20()
+        print("Walk", walk)
+        if walk == "w" and self.x > 0:  
+            self.x -= 1
+        elif walk == "s" and self.x < grid_size - 1:  
+            self.x += 1
+        elif walk == "a" and self.y > 0:  
+            self.y -= 1
+        elif walk == "d" and self.y < grid_size - 1:  
+            self.y += 1
 
+    
     
     def interact(self ):
         self.FightEnemy()
@@ -346,6 +363,15 @@ class Lake(gameObject):
         animate_text("You can't swim you idiot", textDelay)
         player.youded()
 
+def check_cows_dead(cowslist):
+    cows = cowslist
+    all_dead = all(not cow.isactive for cow in cows)
+    if all_dead:
+        print("All cows are dead.")
+        pass
+def spanw_kingCow():
+    kingCow = Enemy(5,0,"kingCow","🐄",["farm"],True,10)
+    pass
 #Checks the mainobject if there is one and returns.  
 def check_collision(x,y, place):
     for obj in place.getObjects():
@@ -440,37 +466,42 @@ enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
-Cow = Enemy(5,3,"Cow","🐄",places["farm"],True,3)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
+cow_list = [
+    Enemy(5,3,"Cow","🐄",places["farm"],True,3),
+    Enemy(7,3,"Cow","🐄",places["farm"],True,3),
+    Enemy(6,6,"Cow","🐄",places["farm"],True,3)
+
+]
 
 stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
-tree = Path("🌲","",trees,places["forest"], False)
+tree = Path("🌲","",trees,places["forest"], False, 1)
 town_path_nodes = [[7,1],[7,3],[4,3],[7,3],[7,5], [7,5], [7,7], [8,7], [0,7]]
-town_path = Path("🟫", "", town_path_nodes, places["town"], True)
+town_path = Path("🟫", "", town_path_nodes, places["town"], True, 1)
 town_path_fix = gameObject(3,3,"town_path_fix","🟫",places["town"],True)
 mansion = gameObject(1,3,"mansion","🛕",places["town"],False)
 houses = [[5,2],[3,2],[5,4],[3,4],[3,6],[5,6],[3,8],[5,8] ]
 for house in houses:
     housess = gameObject(house[0],house[1],"house","🏠",places["town"],False)
 rode = [[7,8],[7,7]]
-rodes = Path("🟫","",rode,places["deep_forest"], True)
+rodes = Path("🟫","",rode,places["deep_forest"], True, 1)
 forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
 for tree in forest_trees:
     forest_tree = gameObject(tree[0],tree[1],"tree", "🌲",places["deep_forest"],False)
 farm_path = [[0,7],[7,7]]
-farm_rode = Path("🟫","",farm_path,places["farm"], True)
-Farm_markCheck = [[3,1],[3,6],[6,1],[6,6]]
-farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True)
-farm_mark = [[1,1],[1,6],[2,1],[2,6],[7,1],[7,6],[8,1],[8,6]]
-farm_marken = Path("🟨","",farm_mark,places["farm"],True)
-farm_mark2 = [[4,1],[4,6],[5,1],[5,6]]
-farm_marken2 = Path("🟨","",farm_mark2,places["farm"],True)
+farm_rode = Path("🟫","",farm_path,places["farm"], True, .1)
+Farm_markCheck = [[3,1],[3,6]]
+farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True, .2)
+Farm_markCheck = [[6,1],[6,6]]
+farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True, .2)
+farm_mark = [[1,1],[8,6]]
+farm_marken = Path("🟨","",farm_mark,places["farm"],True, .1)
 
 offset = [5,0]
 for x in range(2):
@@ -481,9 +512,7 @@ for x in range(2):
         lake = Lake(xOffset,yOffset,name,"🟦", places["outside"], True)
 
 nodes = [[1,6], [3,6], [3,7], [8,7]]
-path = Path("⬛", "🟫", nodes, places["outside"], True)
-
-currentPlace = places["farm"]
+path = Path("⬛", "🟫", nodes, places["outside"], True, 1)
 
 def main():
     animate_text("Welcome to the game!", textDelay)
@@ -496,6 +525,10 @@ def main():
             break
         if enemy.isactive:
             enemy.monkey_run()
+        
+        check_cows_dead(cow_list)
+        for cow in cow_list:
+            cow.cow_walk()
         print_grid()
 
 if __name__ == "__main__":
