@@ -1,4 +1,5 @@
 from ast import Try
+import glob
 import random
 from re import S
 import time
@@ -226,45 +227,6 @@ class Player(gameObject):
             print()
         exit()
 
-    def FightEnemy(self):
-        string = "Want to fight the "+self.name + " yes or no: "
-        animate_text(string, textDelay)
-        fight = input()
-        if fight == "yes":
-            if not self.has_sword:  # Kontrollerar om spelaren har svärdet
-                animate_text("You can't fight without a weapon!", textDelay)
-                return False
-        
-            time.sleep(2)
-            animate_text("roll for damage", textDelay)
-            resulat = random.randint(1, 20)
-            resulat = 20
-            animate_text(f"Dice {1}: {resulat}",textDelay)
-            time.sleep(1)
-
-            if(resulat > 10):
-                self.take_damage(wodden_sword.damage)  # Applicera vapnets skada på fienden
-                if self.health <= 0:
-                    self.deleteObject()
-                    animate_text("You have succesfully killed the monster", textDelay)
-                    self.emoji = "💀"
-                    for i in range(grid_size):
-                        for j in range(grid_size):
-                            if [i, j] == self:
-                                print("💀", end=" ")       
-                else:
-                    animate_text(f"You dealt {wodden_sword.damage} damage to the enemy", textDelay)  
-            else:
-                self.emoji = "💀"
-                time.sleep(2)
-                animate_text("you died", textDelay)
-                self.youded()
-                exit()
-            return True
-            
-        elif fight == "no":
-            animate_text("nice", textDelay)  
-            return False  
 
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place, collision,health):
@@ -299,9 +261,20 @@ class Enemy(gameObject):
             self.y -= 1
         elif walk == "d" and self.y < grid_size - 1:  
             self.y += 1
-
-    
-    
+    def cow_king_walk(self, crown = gameObject):
+        if not self.isactive:
+            return
+        walk = roll_d20()
+        print("Walk", walk)
+        if walk == "w" and self.x > 1:  
+            self.x -= 1
+        elif walk == "s" and self.x < grid_size - 1:  
+            self.x += 1
+        elif walk == "a" and self.y > 0:  
+            self.y -= 1
+        elif walk == "d" and self.y < grid_size - 1:  
+            self.y += 1
+        crown.setPosition((self.x -1), self.y)
     def interact(self ):
         self.FightEnemy()
 
@@ -366,19 +339,19 @@ class Lake(gameObject):
 def check_cows_dead(cowslist, cutscene):
     cows = cowslist
     all_dead = all(not cow.isactive for cow in cows)
-    print("cutscene: ", cutscene)
-     
-    if all_dead and not cutscene:
+ 
+    if not cutscene:
         animate_text("You have killed all the cows", textDelay)
         animate_text("Yooooooo what is happening", textDelay)
-        spanw_kingCow()
         return True
     return False
                 
 def spanw_kingCow():
+    global KingCow_crown
     kingCow = Enemy(5,0,"KingCow","🐄",places["farm"],True,10)
-    KingCow_crown = gameObject(4,0,"crown","👑",places["farm"],True)
+    KingCow_crown = gameObject(4,0,"crown","👑",places["farm"],True, 5)
     animate_text("Is that the KingCow?", textDelay)
+    return kingCow
 #Checks the mainobject if there is one and returns.  
 def check_collision(x,y, place):
     for obj in place.getObjects():
@@ -482,9 +455,7 @@ cow_list = [
     Enemy(5,3,"Cow","🐄",places["farm"],True,2),
     Enemy(7,3,"Cow","🐄",places["farm"],True,2),
     Enemy(6,6,"Cow","🐄",places["farm"],True,2)
-
 ]
-
 stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
@@ -522,6 +493,7 @@ nodes = [[1,6], [3,6], [3,7], [8,7]]
 path = Path("⬛", "🟫", nodes, places["outside"], True, 1)
 
 cutscene = False
+kingwalk = False
 def main():
     animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
@@ -534,10 +506,15 @@ def main():
         if enemy.isactive:
             enemy.monkey_run()
         global cutscene
+        global kingCow
         if check_cows_dead(cow_list, cutscene):
             cutscene = True
+            kingCow = spanw_kingCow()
+        if cutscene:
+            kingCow.cow_king_walk(KingCow_crown) 
         for cow in cow_list:
             cow.cow_walk()
+        
         print_grid()
 
 if __name__ == "__main__":
