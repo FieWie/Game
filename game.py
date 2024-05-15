@@ -211,6 +211,7 @@ class Player(gameObject):
         collided_obj = check_collision(newX,newY, currentPlace)
         if collided_obj:
             if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
+                print("Collide with object: ", collided_obj.name)
                 player.setPosition(newX, newY)
                 collided_obj.interact()
         else:
@@ -340,7 +341,7 @@ def check_cows_dead(cowslist, cutscene):
     cows = cowslist
     all_dead = all(not cow.isactive for cow in cows)
  
-    if not cutscene:
+    if all_dead and not cutscene:
         animate_text("You have killed all the cows", textDelay)
         animate_text("Yooooooo what is happening", textDelay)
         return True
@@ -510,6 +511,8 @@ def main():
         if check_cows_dead(cow_list, cutscene):
             cutscene = True
             kingCow = spanw_kingCow()
+            print(kingCow)
+
         if cutscene:
             kingCow.cow_king_walk(KingCow_crown) 
         for cow in cow_list:
