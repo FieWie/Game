@@ -363,15 +363,22 @@ class Lake(gameObject):
         animate_text("You can't swim you idiot", textDelay)
         player.youded()
 
-def check_cows_dead(cowslist):
+def check_cows_dead(cowslist, cutscene):
     cows = cowslist
     all_dead = all(not cow.isactive for cow in cows)
-    if all_dead:
-        print("All cows are dead.")
-        pass
+    print("cutscene: ", cutscene)
+     
+    if all_dead and not cutscene:
+        animate_text("You have killed all the cows", textDelay)
+        animate_text("Yooooooo what is happening", textDelay)
+        spanw_kingCow()
+        return True
+    return False
+                
 def spanw_kingCow():
-    kingCow = Enemy(5,0,"kingCow","🐄",["farm"],True,10)
-    pass
+    kingCow = Enemy(5,0,"KingCow","🐄",places["farm"],True,10)
+    KingCow_crown = gameObject(4,0,"crown","👑",places["farm"],True)
+    animate_text("Is that the KingCow?", textDelay)
 #Checks the mainobject if there is one and returns.  
 def check_collision(x,y, place):
     for obj in place.getObjects():
@@ -472,9 +479,9 @@ currentPlace = places["house"]
 player.setPlace(currentPlace)
 
 cow_list = [
-    Enemy(5,3,"Cow","🐄",places["farm"],True,3),
-    Enemy(7,3,"Cow","🐄",places["farm"],True,3),
-    Enemy(6,6,"Cow","🐄",places["farm"],True,3)
+    Enemy(5,3,"Cow","🐄",places["farm"],True,2),
+    Enemy(7,3,"Cow","🐄",places["farm"],True,2),
+    Enemy(6,6,"Cow","🐄",places["farm"],True,2)
 
 ]
 
@@ -514,6 +521,7 @@ for x in range(2):
 nodes = [[1,6], [3,6], [3,7], [8,7]]
 path = Path("⬛", "🟫", nodes, places["outside"], True, 1)
 
+cutscene = False
 def main():
     animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
@@ -525,8 +533,9 @@ def main():
             break
         if enemy.isactive:
             enemy.monkey_run()
-        
-        check_cows_dead(cow_list)
+        global cutscene
+        if check_cows_dead(cow_list, cutscene):
+            cutscene = True
         for cow in cow_list:
             cow.cow_walk()
         print_grid()
