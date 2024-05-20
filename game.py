@@ -292,7 +292,7 @@ class Enemy(gameObject):
                 time.sleep(2)
                 animate_text("roll for damage", textDelay)
                 resulat = random.randint(1, 20)
-                resulat = 20
+                #resulat = 20
                 animate_text(f"Dice {1}: {resulat}",textDelay)
                 time.sleep(1)
 
