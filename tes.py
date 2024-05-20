@@ -61,34 +61,38 @@ class gameObject:
         else:
             print("Object is not placed anywhere.")
     
+    def isInsideOfScreen(self):
+        if 0 <= self.x < grid_size:
+            return True
+        elif 0 <= self.y < grid_size:
+            return True
+        else: return False
+            
+
     def interact(self):
         return self.can_collide
         
-
-class Path():
-    def __init__(self, path_emoji, bridge_emoji, nodes, place, collision, layer):
-        self.path_emoji = path_emoji
-        self.bridge_emoji = bridge_emoji
+class GameObjects:
+    gameObjects = []
+    def __init__(self,name, emoji, nodes, place, can_collide, layer= 1):
+        self.name = name
+        self.emoji = emoji
         self.nodes = nodes
         self.place = place
-        self.collision = collision  # Define collision attribute
+        self.can_collide = can_collide  # Define collision attribute
         self.layer = layer
-        self.path = self.make_path()
+        self.path = self.spawn_objects()
 
-    #Makes path
-    def make_path(self):
+    #Makes objects
+    def spawn_objects(self):
         path = []
         for i in range(len(self.nodes) - 1):
             x1, y1 = self.nodes[i]
             x2, y2 = self.nodes[i + 1]
             path.extend(self.interpolate_points(x1, y1, x2, y2))
         for block in path:
-            emoji = self.path_emoji
-            collide_obj = check_collision(block[0],block[1], self.place)
-            if isinstance(collide_obj, Lake):
-                collide_obj.deleteObject()
-                emoji = self.bridge_emoji
-            block = gameObject(block[0], block[1], "path", emoji, self.place, self.collision, self.layer)
+            block = gameObject(block[0], block[1],self.name, self.emoji, self.place, self.can_collide, self.layer)
+            self.gameObjects.append(block)
         return path 
     
     def interpolate_points(self, x1, y1, x2, y2):
@@ -107,6 +111,43 @@ class Path():
                     path.append([x, y])
         return path
     
+class Path(GameObjects):
+    def __init__(self, name, path_emoji, bridge_emoji, nodes, place, can_collide, layer):
+        super().__init__(name,path_emoji, bridge_emoji, nodes, place, can_collide, layer)
+        self.path = self.spawn_objects()
+
+    #Makes path
+    def spawn_objects(self):
+        path = []
+        for i in range(len(self.nodes) - 1):
+            x1, y1 = self.nodes[i]
+            x2, y2 = self.nodes[i + 1]
+            path.extend(self.interpolate_points(x1, y1, x2, y2))
+        for block in path:
+            emoji = self.emoji
+            collide_obj = check_collision(block[0],block[1], self.place)
+            if isinstance(collide_obj, Lake):
+                collide_obj.deleteObject()
+                emoji = self.bridge_emoji
+            block = gameObject(block[0], block[1], "path", emoji, self.place, self.can_collide, self.layer)
+        return path 
+
+class Obstacles(GameObjects):
+    def __init__(self, name, emoji, nodes, place, can_collide, layer):
+        super().__init__(name,emoji, nodes, place, can_collide, layer)
+        self.path = super().spawn_objects()
+
+    def move_objects(self,directionX, directionY):
+        for obj in self.gameObjects:
+            x,y=obj.getPosition()
+            newX = x+ directionX
+            newY = y+ directionY
+            obj.setPosition(newX,newY)
+            if not obj.isInsideOfScreen():
+                print("outside of screen pos:", newY)
+                player.youded()
+            
+        
 
 def convertTuple(tup):
     str = "".join(tup)
@@ -115,7 +156,7 @@ def convertTuple(tup):
 class Player(gameObject):
     has_sword = False
 
-    def __init__(self, x, y, name, emoji, place, collision, sortlayer):
+    def __init__(self,x, y, name, emoji, place, collision, sortlayer):
         super().__init__(x, y, name, emoji, place,collision,sortlayer)
         self.current_weapon = None
         
@@ -140,7 +181,7 @@ class Player(gameObject):
             elif move == "d" and y < grid_size - 1:
                 newY += 1
             else:
-                continue1
+                continue
 
             collided_obj = check_collision(newX,newY, currentPlace)
             if collided_obj:
@@ -233,7 +274,8 @@ def print_grid():
                 else:
                     print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
             print()
-        time.sleep(running_delay)
+        obstacles.move_objects(0,1)
+        time.sleep(1)
 
 def animate_text(string, delay = textDelay):
     for char in string:
@@ -250,6 +292,9 @@ currentPlace = places["house"]
 
 enemy = Enemy(3, 3, "monkey", "🦧", places["house"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
+
+ye = [[0,0], [9,0]]
+obstacles = Obstacles("obj", "🦧", ye, places["house"], True, 1)
 
 running = True
 
