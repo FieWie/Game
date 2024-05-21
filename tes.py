@@ -3,10 +3,10 @@ import time
 import msvcrt
 import random
 
-grid_size = 20
+grid_size = 9
 textDelay = .03
 
-running_delay = .5
+framerate = 10
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -29,13 +29,14 @@ class Place:
 
 class gameObject:
     isactive = True
-    def __init__(self, x, y, name, emoji, place, can_collide, sortlayer = 1, deadEmoji = "💀"):
+    def __init__(self, x, y, name, emoji, place, can_collide, speed=1, sortlayer = 1, deadEmoji = "💀"):
         self.x = x
         self.y = y
         self.name = name
         self.emoji = emoji
         self.place = place
         self.can_collide = can_collide
+        self.speed = speed
         self.sortlayer = sortlayer
         self.deadEmoji = deadEmoji
 
@@ -62,11 +63,13 @@ class gameObject:
             print("Object is not placed anywhere.")
     
     def isInsideOfScreen(self):
-        if 0 <= self.x < grid_size:
-            return True
-        elif 0 <= self.y < grid_size:
-            return True
-        else: return False
+        if not (0 <= self.x < grid_size):
+            print("is inside of screen x:", self.x)
+            return False
+        elif not (0 <= self.y < grid_size):
+            print("is inside of screen y",self.y)
+            return False
+        else: return True
             
 
     def interact(self):
@@ -137,7 +140,7 @@ class Obstacles(GameObjects):
         super().__init__(name,emoji, nodes, place, can_collide, layer)
 
     def move_objects(self,directionX, directionY):
-        for obj in self.gameObjects:x
+        for obj in self.gameObjects:
             x,y=obj.getPosition()
             newX = x+ directionX
             newY = y+ directionY
@@ -146,7 +149,6 @@ class Obstacles(GameObjects):
                 print("outside of screen pos:", newY)
                 player.youded()
             
-        
 
 def convertTuple(tup):
     str = "".join(tup)
@@ -190,7 +192,7 @@ class Player(gameObject):
                     collided_obj.interact()
             else:
                 self.setPosition(newX, newY)      
-            time.sleep(running_delay)  # Add a small delay to prevent too rapid movement
+            time.sleep(framerate)  # Add a small delay to prevent too rapid movement
     
     def youded(self):
         global running
@@ -230,7 +232,7 @@ class Enemy(gameObject):
                 self.rörelse_riktning *= -1
             # Additional enemy-specific attributes or methods can be added here
               
-            time.sleep(running_delay)
+            time.sleep(framerate)
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
@@ -274,7 +276,9 @@ def print_grid():
                     print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
             print()
         obstacles.move_objects(0,1)
-        time.sleep(running_delay    )
+
+        delay = 1/framerate
+        time.sleep(delay)
 
 def animate_text(string, delay = textDelay):
     for char in string:
@@ -292,7 +296,7 @@ currentPlace = places["house"]
 enemy = Enemy(3, 3, "monkey", "🦧", places["house"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 
-ye = [[0,0], [9,0]]
+ye = [[0,0], [8,0]]
 obstacles = Obstacles("obj", "🦧", ye, places["house"], True, 1)
 
 running = True
