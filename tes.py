@@ -3,7 +3,7 @@ import time
 import msvcrt
 import random
 
-grid_size = 9
+grid_size = 20
 textDelay = .03
 
 running_delay = .2
@@ -146,8 +146,6 @@ class Obstacles(GameObjects):
             if not obj.isInsideOfScreen():
                 print("outside of screen pos:", newY)
                 player.youded()
-            
-        
 
 def convertTuple(tup):
     str = "".join(tup)
