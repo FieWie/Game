@@ -6,7 +6,7 @@ import random
 grid_size = 20
 textDelay = .03
 
-running_delay = .2
+running_delay = .5
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -135,10 +135,9 @@ class Path(GameObjects):
 class Obstacles(GameObjects):
     def __init__(self, name, emoji, nodes, place, can_collide, layer):
         super().__init__(name,emoji, nodes, place, can_collide, layer)
-        self.path = super().spawn_objects()
 
     def move_objects(self,directionX, directionY):
-        for obj in self.gameObjects:
+        for obj in self.gameObjects:x
             x,y=obj.getPosition()
             newX = x+ directionX
             newY = y+ directionY
@@ -146,6 +145,8 @@ class Obstacles(GameObjects):
             if not obj.isInsideOfScreen():
                 print("outside of screen pos:", newY)
                 player.youded()
+            
+        
 
 def convertTuple(tup):
     str = "".join(tup)
@@ -273,7 +274,7 @@ def print_grid():
                     print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
             print()
         obstacles.move_objects(0,1)
-        time.sleep(1)
+        time.sleep(running_delay    )
 
 def animate_text(string, delay = textDelay):
     for char in string:
