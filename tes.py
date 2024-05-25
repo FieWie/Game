@@ -6,7 +6,7 @@ import random
 grid_size = 9
 textDelay = .03
 
-framerate = 10
+framerate = 1
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
