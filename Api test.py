@@ -127,18 +127,16 @@ def process_chat():
     pass
 
 
-firstTime = True
 print("Hej vad kan jag hjälpa till med")
 while True:
     message = input()
         
-    firstTime = False
     payload = {
     "model": "Yi-34B-Chat-GPTQ",
         "messages": [
             {
             "role": "system",
-            "content": interpret_message
+            "content": context
             },
             {
             "role": "user",

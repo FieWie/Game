@@ -1,10 +1,11 @@
-from ast import Try
-import glob
+from mimetypes import init
+from multiprocessing import context
 import random
-from re import S
 import time
 from typing import Tuple
 import msvcrt
+import requests
+
 
 grid_size = 9
 
@@ -228,6 +229,18 @@ class Player(gameObject):
             print()
         exit()
 
+    def observe_player_quests(self):
+        string = "The player has currently completed these quests:"
+        for quest in quests:
+            if quest.is_completed():
+                string += (f"\n- {quest.quest_information()}")
+        
+        string += ("\nAnd has not completed these quests:")
+        for quest in quests:
+            if not quest.is_completed():
+                string += (f"\n- {quest.quest_information()}")
+        return string
+
 
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place, collision,health):
@@ -262,20 +275,6 @@ class Enemy(gameObject):
             self.y -= 1
         elif walk == "d" and self.y < grid_size - 1:  
             self.y += 1
-    def cow_king_walk(self, crown = gameObject):
-        if not self.isactive:
-            return
-        walk = roll_d20()
-        print("Walk", walk)
-        if walk == "w" and self.x > 1:  
-            self.x -= 1
-        elif walk == "s" and self.x < grid_size - 1:  
-            self.x += 1
-        elif walk == "a" and self.y > 0:  
-            self.y -= 1
-        elif walk == "d" and self.y < grid_size - 1:  
-            self.y += 1
-        crown.setPosition((self.x -1), self.y)
     def interact(self ):
         self.FightEnemy()
 
@@ -292,7 +291,7 @@ class Enemy(gameObject):
                 time.sleep(2)
                 animate_text("roll for damage", textDelay)
                 resulat = random.randint(1, 20)
-                #resulat = 20
+                resulat = 20
                 animate_text(f"Dice {1}: {resulat}",textDelay)
                 time.sleep(1)
 
@@ -327,6 +326,30 @@ class Enemy(gameObject):
             animate_text("nice", textDelay)  
             return False  
 
+class KingCow(Enemy):
+    def __init__(self, x, y, name, emoji, place, collision, health):
+        super().__init__(x, y, name, emoji, place, collision, health)
+
+    def cow_king_walk(self, crown = gameObject):
+        if not self.isactive:
+            return
+        walk = roll_d20()
+        print("Walk", walk)
+        if walk == "w" and self.x > 1:  
+            self.x -= 1
+        elif walk == "s" and self.x < grid_size - 1:  
+            self.x += 1
+        elif walk == "a" and self.y > 0:  
+            self.y -= 1
+        elif walk == "d" and self.y < grid_size - 1:  
+            self.y += 1
+        crown.setPosition((self.x -1), self.y)
+
+    def deleteObject(self):
+        kill_king_cow.complete()
+        self.isactive = False
+        self.emoji = self.deadEmoji
+        self.can_collide = False
     
 class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place, collision):
@@ -337,14 +360,84 @@ class Lake(gameObject):
         animate_text("You can't swim you idiot", textDelay)
         player.youded()
 
-class Quest():
+class NPC(gameObject):
+    api_key = "nJF8Lsuw6SVaAV8j07lUiezGAGF86FAzRhy1ohg7b7ab7b59"
+    url = "https://teachgpt.ssis.nu/api/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+    context ="""
+        You are a Villager in a game. 
+        Your task is to help the player further into the game.
+        You should only answer with the information about the quests provided below.
+        You should answer in short sentences preferably 1-2 sentences in total.
+
+        If the player questions about what he has left to do, then you should anwer like this: 
+        "You have this left: (then the quest he has left)"
+        """
     
+    def __init__(self, x, y, name, emoji, place, can_collide, sortlayer=1, deadEmoji="💀"):
+        super().__init__(x, y, name, emoji, place, can_collide, sortlayer, deadEmoji)
+    
+    def interact(self):
+        animate_text("What can i help with?. To exit, write bye.")
+        while True:
+            message = input()
+            if message == "bye":
+                animate_text("I see you later my friend!")
+                break
+                
+            payload = {
+            "model": "Yi-34B-Chat-GPTQ",
+                "messages": [
+                    {
+                    "role": "system",
+                    "content": self.context + player.observe_player_quests()
+                    },
+                    {
+                    "role": "user",
+                    "content": message
+                    }
+                ]
+            }
+            response = requests.post(self.url, json=payload, headers=self.headers)
+
+            jsonFile = {}
+            if response.status_code != 200:
+                print("Error:")
+                print(response.text)
+
+
+            response = response.json()['choices'][0]['message']['content']
+            animate_text(response)
+
+
+class Quest:
+    def __init__(self, name, location, reward, quests_parent):
+        self.name = name
+        self.location = location
+        self.reward = reward
+        self.completed = False
+        quests_parent.append(self)
+
+    def quest_information(self):
+        string = self.name + ", located at: " + self.location + ", Reward: " + self.reward
+        return string
+    
+    def complete(self):
+        if not self.completed:
+            self.completed = True
+            animate_text(f"Quest completed: {self.name}! Reward: {self.reward}")
+  
+    def is_completed(self):
+        return self.completed
 
 def check_cows_dead(cowslist, cutscene):
     cows = cowslist
     all_dead = all(not cow.isactive for cow in cows)
  
-    if all_dead and not cutscene:
+    if not all_dead and not cutscene:
         animate_text("You have killed all the cows", textDelay)
         animate_text("Yooooooo what is happening", textDelay)
         return True
@@ -352,7 +445,7 @@ def check_cows_dead(cowslist, cutscene):
                 
 def spanw_kingCow():
     global KingCow_crown
-    kingCow = Enemy(5,0,"KingCow","🐄",places["farm"],True,10)
+    kingCow = KingCow(5,0,"KingCow","🐄",places["farm"],True,10)
     KingCow_crown = gameObject(4,0,"crown","👑",places["farm"],True, 5)
     animate_text("Is that the KingCow?", textDelay)
     return kingCow
@@ -390,6 +483,25 @@ def animate_text(string, delay = textDelay):
         time.sleep(delay) 
     print()
     time.sleep(1)  
+
+
+
+quests = []
+
+kill_king_cow = Quest(
+    name="Kill king Cow",
+    location="Farm",
+    reward= "None",
+    quests_parent= quests
+)
+
+explore_mansion = Quest(
+    name="Explore mansion",
+    location="Town",
+    reward="candy",
+    quests_parent= quests
+)
+
 
 places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
@@ -452,6 +564,8 @@ orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
+villager = NPC(6,5, "Villager", "🧙‍♂️", places["town"], True)
+
 currentPlace = places["house"]
 player.setPlace(currentPlace)
 
@@ -502,7 +616,7 @@ def main():
     animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
     print_grid()
-
+    print(player.observe_player_quests())
     while True:
         
         if not player.move_player():
