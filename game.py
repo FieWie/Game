@@ -360,6 +360,7 @@ class Lake(gameObject):
         animate_text("You can't swim you idiot", textDelay)
         player.youded()
 
+
 class NPC(gameObject):
     api_key = "nJF8Lsuw6SVaAV8j07lUiezGAGF86FAzRhy1ohg7b7ab7b59"
     url = "https://teachgpt.ssis.nu/api/v1/chat/completions"
@@ -437,7 +438,7 @@ def check_cows_dead(cowslist, cutscene):
     cows = cowslist
     all_dead = all(not cow.isactive for cow in cows)
  
-    if not all_dead and not cutscene:
+    if all_dead and not cutscene:
         animate_text("You have killed all the cows", textDelay)
         animate_text("Yooooooo what is happening", textDelay)
         return True
@@ -498,9 +499,11 @@ kill_king_cow = Quest(
 explore_mansion = Quest(
     name="Explore mansion",
     location="Town",
-    reward="candy",
+    reward="Candy",
     quests_parent= quests
 )
+
+
 
 
 places = {
@@ -563,8 +566,8 @@ player = Player(4, 5, "player", "🈸", places["house"],True,10)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
-knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
-villager = NPC(6,5, "Villager", "🧙‍♂️", places["town"], True)
+knife = weapon(10, 10,0,0,"knife","🔪",places["outside"],True,0)
+villager = NPC(6,5, "Villager", "🫅 ", places["town"], True)
 
 currentPlace = places["house"]
 player.setPlace(currentPlace)
