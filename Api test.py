@@ -142,7 +142,7 @@ while True:
             "role": "user",
             "content": message
             }
-        ]
+        ],
     }
     response = requests.post(url, json=payload, headers=headers)
 

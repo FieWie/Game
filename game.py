@@ -16,10 +16,9 @@ def roll_d20():
     return random.choice(directions)
 
 class Place:
-    def __init__(self, name, description, player_start, emoji):
+    def __init__(self, name, description, emoji):
         self.name = name
         self.description = description
-        self.player_start = player_start
         self.objects = []
         self.emoji = emoji
 
@@ -84,10 +83,12 @@ class LinkObject(gameObject):
         
 
 class Link:
-    def __init__(self, linkObject1, linkObject2, destination):
+    def __init__(self, linkObject1, linkObject2):
         self.linkObject1 = linkObject1
         self.linkObject2 = linkObject2
-        self.destination = destination
+
+        linkObject1.link = self
+        linkObject2.link = self
 
     def interact(self):
         global currentPlace  
@@ -213,8 +214,10 @@ class Player(gameObject):
         if collided_obj:
             if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
                 print("Collide with object: ", collided_obj.name)
-                player.setPosition(newX, newY)
+                #Checks if the player can move
+                player.setPosition(newX, newY)  
                 collided_obj.interact()
+                   
         else:
             player.setPosition(newX, newY)      
         return True
@@ -302,7 +305,7 @@ class Enemy(gameObject):
                         self.deleteObject()
                         animate_text("You have succesfully killed the "+self.name, textDelay)
                         self.emoji = "💀"
-                        
+                        self.Kill_enemy()
                         break       
                     else:
                         animate_text(f"You dealt {player.current_weapon.damage} damage to the {self.name}", textDelay)
@@ -319,12 +322,22 @@ class Enemy(gameObject):
                     time.sleep(2)
                     animate_text("you died", textDelay)
                     player.youded()
-                    exit()
-                
-            
+                    exit()  
         elif fight == "no":
             animate_text("nice", textDelay)  
             return False  
+    def Kill_enemy(self):
+        print("ded")
+
+class Bear(Enemy):
+    def __init__(self, x, y, name, emoji, place, collision, health):
+        super().__init__(x, y, name, emoji, place, collision, health)
+    
+    def interact(self):
+        return super().interact()
+    def Kill_enemy(self):
+        self.setPosition(self.x +1, self.y)
+
 
 class KingCow(Enemy):
     def __init__(self, x, y, name, emoji, place, collision, health):
@@ -507,14 +520,15 @@ explore_mansion = Quest(
 
 
 places = {
-    "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
-    "outside": Place("outside", "You are outside the house.", [1, 6], "🟩"),
-    "forest": Place("forest", "You have entered the forest", [0,7],"🟩"),
-    "cave": Place("cave", "Yo is dark here",[8,4],"⬛"),
-    "hut": Place("hut", "this is nasty", [0,5],"🟫"),
-    "deep_forest": Place("Deep_forest", "this is deep", [0,7],"🟩"),
-    "town": Place("town", "YOOOO",[7,0],"🟩"),
-    "farm":Place("farm","konrad love this",[0,7],"🟩")
+    "house": Place("house", "You are inside the house.", "⬛"),
+    "outside": Place("outside", "You are outside the house.", "🟩"),
+    "forest": Place("forest", "You have entered the forest","🟩"),
+    "cave": Place("cave", "Yo is dark here","⬛"),
+    "hut": Place("hut", "This is nasty","🟫"),
+    "deep_forest": Place("Deep_forest", "this is deep","🟩"),
+    "town": Place("town", "YOOOO, is that a villager??","🟩"),
+    "farm":Place("farm","Konrad love this","🟩"),
+    "desert":Place("desert","Its so hot here","🟨"),
 }
 currentPlace = places["house"]
 
@@ -532,45 +546,39 @@ linkObjects = {
     "town_entrance": LinkObject((7,8),"town_entrace","🟫",places["deep_forest"],None),
     "town_exit": LinkObject((7,0),"town_exit","🟫",places["town"],None),
     "farm_entrance": LinkObject((8,7),"farm_entrance","🟫",places["town"],None),
-    "farm_exit": LinkObject((0,7),"farm_exit","🟫",places["farm"],None)
+    "farm_exit": LinkObject((0,7),"farm_exit","🟫",places["farm"],None),
+    "desert_entrence": LinkObject((4,0),"desert_entrence","🏜️ ",places["deep_forest"],None),
+    "desert_exit": LinkObject((4,8),"desert_exit","🟩",places["desert"],None),
+
 }
     
 links = {
-    "home" : Link(linkObjects["door"], linkObjects["house"], places["outside"]),
-    "outside" : Link(linkObjects["grass"], linkObjects["black"], places["forest"]),
-    "forest" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["forest"]),
-    "cave" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"], places["cave"]),
-    "hut" : Link(linkObjects["hut_outside"],linkObjects["inside_hut"], places["forest"]),
-    "deep_forest" : Link(linkObjects["Deep_forest_entrance"], linkObjects["Deep_forest_exit"], places["deep_forest"]),
-    "town" : Link(linkObjects["town_entrance"], linkObjects["town_exit"], places["town"]),
-    "farm" : Link(linkObjects["farm_entrance"], linkObjects["farm_exit"], places["farm"])
-}
+    "home" : Link(linkObjects["door"], linkObjects["house"]),
+    "outside" : Link(linkObjects["grass"], linkObjects["black"]),
+    "forest" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"]),
+    "cave" : Link(linkObjects["cave_entrance"], linkObjects["inside_cave"]),
+    "hut" : Link(linkObjects["hut_outside"],linkObjects["inside_hut"]),
+    "deep_forest" : Link(linkObjects["Deep_forest_entrance"], linkObjects["Deep_forest_exit"]),
+    "town" : Link(linkObjects["town_entrance"], linkObjects["town_exit"]),
+    "farm" : Link(linkObjects["farm_entrance"], linkObjects["farm_exit"]),
+    "desert" : Link(linkObjects["desert_entrence"], linkObjects["desert_exit"]),
 
-linkObjects["door"].link = links["home"]
-linkObjects["house"].link = links["home"]
-linkObjects["grass"].link = links["outside"]
-linkObjects["black"].link = links["outside"]
-linkObjects["cave_entrance"].link = links["forest"]
-linkObjects["inside_cave"].link = links["forest"]
-linkObjects["inside_hut"].link = links["hut"]
-linkObjects["hut_outside"].link = links["hut"]
-linkObjects["Deep_forest_entrance"].link = links["deep_forest"]
-linkObjects["Deep_forest_exit"].link = links["deep_forest"]
-linkObjects["town_entrance"].link = links["town"]
-linkObjects["town_exit"].link = links["town"]
-linkObjects["farm_entrance"].link = links["farm"]
-linkObjects["farm_exit"].link = links["farm"]
+}
 
 enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
-Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
+bear = Bear(4,1, "bear", "🧸", places["deep_forest"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(10, 10,0,0,"knife","🔪",places["outside"],True,0)
 villager = NPC(6,5, "Villager", "🫅 ", places["town"], True)
 
 currentPlace = places["house"]
 player.setPlace(currentPlace)
+
+#currentPlace = places["deep_forest"]
+#player.setPlace(currentPlace)
+
 
 cow_list = [
     Enemy(5,3,"Cow","🐄",places["farm"],True,2),
