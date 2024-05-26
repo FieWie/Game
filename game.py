@@ -152,35 +152,7 @@ class Path():
                 for y in range(min(y1, y2), max(y1, y2) + 1):
                     path.append([x, y])
         return path
-    
-
-
-class weapon(gameObject):
-    def __init__(self, damage, durability, x, y, name, emoji, place,collision, sortlayer):
-        super().__init__(x, y, name, emoji, place,collision,sortlayer)
-        self.damage = damage
-        self.durability = durability
-        player.current_weapon = None
-        self.current_name = None
-
-    def interact(self):
-        animate_text(f"Would you like to pick up the {self.name} yes or no:")
-        kark = input()
-        if kark == "yes":
-            bla =  convertTuple(("you have picked up ", self.name))
-            animate_text(bla)
-            self.deleteObject()
-            player.has_sword = True
-            print("pickup sword")
-            player.current_weapon = self
-            return True
-        elif kark == "no":
-            animate_text("You don't like sharp things, pussy!")
-            return False
-        else:
-            animate_text("haha")
-            return False    
-        
+            
 def convertTuple(tup):
     str = "".join(tup)
     return str
@@ -212,7 +184,6 @@ class Player(gameObject):
         collided_obj = check_collision(newX,newY, currentPlace)
         if collided_obj:
             if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
-                print("Collide with object: ", collided_obj.name)
                 #Checks if the player can move
                 player.setPosition(newX, newY)  
                 collided_obj.interact()
@@ -237,11 +208,88 @@ class Player(gameObject):
                 string += (f"\n- {quest.quest_information()}")
                 
         
-        string += ("\nAnd has not completed these quests:")
+        string += ("\n"*2 +"And has not completed these quests:")
         for quest in quests:
             if not quest.is_completed():
                 string += (f"\n- {quest.quest_information()}")
         return string
+
+
+class Weapon(gameObject):
+    def __init__(self, damage, durability, x, y, name, emoji, place,collision, sortlayer):
+        super().__init__(x, y, name, emoji, place,collision,sortlayer)
+        self.damage = damage
+        self.durability = durability
+        player.current_weapon = None
+        self.current_name = None
+
+    def interact(self):
+        animate_text(f"Would you like to pick up the {self.name} yes or no:")
+        kark = input()
+        if kark == "yes":
+            animate_text(("you have picked up "+ self.name))
+            self.take_weapon()
+            return True
+        elif kark == "no":
+            animate_text("You don't like sharp things, pussy!")
+            return False
+        else:
+            animate_text("haha")
+            return False    
+    
+    def take_weapon(self):
+        inventory.add_item(self)
+        self.place.removeObject(self)
+        self.place = None
+        
+    def drop_weapon(self, x,y,place):
+        inventory.remove_item(self)
+        self.place = place
+        self.place.addObject(self)
+        self.x = x
+        self.y = y
+
+class Food(gameObject):
+    def __init__(self, x, y, name, emoji, place, can_collide):
+        super().__init__(x, y, name, emoji, place, can_collide)
+    pass
+
+class Inventory:
+    weapons = []
+    food = []
+
+    def add_item(self, item):
+        if isinstance(item, Weapon):
+            print("weapon added")
+            self.weapons.append(item)
+        elif isinstance(item, Food):
+            self.food.append(item)
+
+    def remove_item(self, item):
+        if isinstance(item, Weapon):
+            self.items.remove(item)
+            print(f"{item.name} has been dropped from your inventory.")
+        elif isinstance(item, Food):
+            self.items.remove(item)
+            print(f"{item.name} has been dropped from your inventory.")
+        else:
+            print(f"{item.name} is not in your inventory.")
+
+    def check_weapons(self):
+        print(len(self.weapons))
+        string = ""
+        if len(self.weapons) != 0:
+            string += "You currently have these weapons:\n"
+            for weapon in self.weapons:
+                string += f"- {weapon.name} \n"
+        else: string += ("You do not have any weapons yet:" + "\n"*2)
+
+        if len(self.food) != 0:
+            string += "You currently have these foods:\n"
+            for food in self.food:
+                string += f"- {food.name} \n"
+        else: string += "You do not have any food yet:\n"
+        animate_text(string)
 
 
 class Enemy(gameObject):
@@ -370,10 +418,6 @@ class Lake(gameObject):
         animate_text("You can't swim you idiot", textDelay)
         player.youded()
 
-class Inventory:
-    def __init__(self):
-        pass
-
 
 class NPC(gameObject):
     api_key = "nJF8Lsuw6SVaAV8j07lUiezGAGF86FAzRhy1ohg7b7ab7b59"
@@ -480,17 +524,23 @@ def check_input():
         elif letter == "u":
             animate_text(player.observe_player_quests())
         elif letter == "i":
-            animate_text("inventory doesnt currently exist, sorry")
+            inventory.check_weapons()
+        elif letter == "l":
+            player.current_weapon.drop_weapon(player.x, player.y, player.place)
+            animate_text("You dropped weapon lol!")
+
         elif letter == "h":
             string = """
 Move with: "W/A/S/D".
 Open inventory with: "I".
 See all quests with: "U".
-Get help with "H"."""
+Get help with: "H"."""
             animate_text(string)
             time.sleep(2)
             print("\n"*2)
             continue
+        time.sleep(1)
+        print_grid()
 
 def print_grid():
     print("\n" * 10)
@@ -587,12 +637,14 @@ links = {
 
 }
 
+inventory = Inventory()
+
 enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 bear = Bear(4,1, "bear", "🧸", places["deep_forest"],True,2)
-wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
-knife = weapon(10, 10,0,0,"knife","🔪",places["outside"],True,0)
+wodden_sword = Weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
+knife = Weapon(10, 10,0,0,"knife","🔪",places["outside"],True,0)
 villager = NPC(6,5, "Villager", "🫅 ", places["town"], True)
 cow_list = [
     Enemy(5,3,"Cow","🐄",places["farm"],True,2),
@@ -603,10 +655,6 @@ cow_list = [
 
 currentPlace = places["house"]
 player.setPlace(currentPlace)
-
-#currentPlace = places["deep_forest"]
-#player.setPlace(currentPlace)
-
 
 offset = [5,0]
 for x in range(2):
