@@ -1,3 +1,4 @@
+from ast import Try
 from mimetypes import init
 from multiprocessing import context
 import random
@@ -191,9 +192,7 @@ class Player(gameObject):
         super().__init__(x, y, name, emoji, place,collision,sortlayer)
         self.current_weapon = None
         
-    def move_player(self):
-        print("Where do you want to go? (w/s/a/d): ")
-        move = msvcrt.getch().decode('utf-8').lower()
+    def move_player(self, move):
         if move == "q":
             print("Exiting the game.")
             return False
@@ -220,8 +219,7 @@ class Player(gameObject):
                    
         else:
             player.setPosition(newX, newY)      
-        return True
-    
+
     def youded(self):
         for i in range(grid_size):
             for j in range(grid_size):
@@ -237,6 +235,7 @@ class Player(gameObject):
         for quest in quests:
             if quest.is_completed():
                 string += (f"\n- {quest.quest_information()}")
+                
         
         string += ("\nAnd has not completed these quests:")
         for quest in quests:
@@ -269,7 +268,6 @@ class Enemy(gameObject):
         if not self.isactive:
             return
         walk = roll_d20()
-        print("Walk", walk)
         if walk == "w" and self.x > 0:  
             self.x -= 1
         elif walk == "s" and self.x < grid_size - 1:  
@@ -372,6 +370,10 @@ class Lake(gameObject):
         animate_text("You can't swim you idiot", textDelay)
         player.youded()
 
+class Inventory:
+    def __init__(self):
+        pass
+
 
 class NPC(gameObject):
     api_key = "nJF8Lsuw6SVaAV8j07lUiezGAGF86FAzRhy1ohg7b7ab7b59"
@@ -415,12 +417,9 @@ class NPC(gameObject):
                 ]
             }
             response = requests.post(self.url, json=payload, headers=self.headers)
-
-            jsonFile = {}
             if response.status_code != 200:
                 print("Error:")
                 print(response.text)
-
 
             response = response.json()['choices'][0]['message']['content']
             animate_text(response)
@@ -468,6 +467,30 @@ def check_collision(x,y, place):
             if obj.getPosition() == [x, y]:
                 return obj
     return None
+
+def check_input():
+    while True:
+        print("Where do you want to go? (w/s/a/d) or h for help: ")
+        letter = msvcrt.getch().decode('utf-8').lower()
+        print("\n"*2)
+        if letter in ["w", "a", "s", "d"]:
+            print("move player")
+            player.move_player(letter)
+            break
+        elif letter == "u":
+            animate_text(player.observe_player_quests())
+        elif letter == "i":
+            animate_text("inventory doesnt currently exist, sorry")
+        elif letter == "h":
+            string = """
+Move with: "W/A/S/D".
+Open inventory with: "I".
+See all quests with: "U".
+Get help with "H"."""
+            animate_text(string)
+            time.sleep(2)
+            print("\n"*2)
+            continue
 
 def print_grid():
     print("\n" * 10)
@@ -628,13 +651,11 @@ cutscene = False
 kingwalk = False
 def main():
     animate_text("Welcome to the game!", textDelay)
-    print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
+    print("Instructions: Move using 'w', 'a', 's', 'd'. Type h for help.")
     print_grid()
-    print(player.observe_player_quests())
     while True:
         
-        if not player.move_player():
-            break
+        check_input()
         if enemy.isactive:
             enemy.monkey_run()
         global cutscene
