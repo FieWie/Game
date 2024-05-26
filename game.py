@@ -367,7 +367,6 @@ class KingCow(Enemy):
 class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place, collision):
         super().__init__(x, y, name, emoji, place,collision, sortlayer=0)
-        # Additional enemy-specific attributes or methods can be added here
 
     def interact(self):
         animate_text("You can't swim you idiot", textDelay)
@@ -572,6 +571,12 @@ bear = Bear(4,1, "bear", "🧸", places["deep_forest"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(10, 10,0,0,"knife","🔪",places["outside"],True,0)
 villager = NPC(6,5, "Villager", "🫅 ", places["town"], True)
+cow_list = [
+    Enemy(5,3,"Cow","🐄",places["farm"],True,2),
+    Enemy(7,3,"Cow","🐄",places["farm"],True,2),
+    Enemy(6,6,"Cow","🐄",places["farm"],True,2)
+]
+
 
 currentPlace = places["house"]
 player.setPlace(currentPlace)
@@ -580,27 +585,34 @@ player.setPlace(currentPlace)
 #player.setPlace(currentPlace)
 
 
-cow_list = [
-    Enemy(5,3,"Cow","🐄",places["farm"],True,2),
-    Enemy(7,3,"Cow","🐄",places["farm"],True,2),
-    Enemy(6,6,"Cow","🐄",places["farm"],True,2)
-]
+offset = [5,0]
+for x in range(2):
+    for y in range(9):
+        xOffset = x +offset[0]
+        yOffset = y +offset[1]
+        name = "lake" + str(xOffset) + str(yOffset)
+        lake = Lake(xOffset,yOffset,name,"🟦", places["outside"], True)
+nodes = [[1,6], [3,6], [3,7], [8,7]]
+path = Path("⬛", "🟫", nodes, places["outside"], True, 1)
+
 stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
-trees = [[3,5],[8,5],[7,5],[6,5],[4,5],[5,5],[2,5],[1,5],[0,5]]
+trees = [[8,5],[0,5]]
 tree = Path("🌲","",trees,places["forest"], False, 1)
-town_path_nodes = [[7,1],[7,3],[4,3],[7,3],[7,5], [7,5], [7,7], [8,7], [0,7]]
+
+town_path_nodes = [[7,1],[7,3],[2,3],[7,3],[7,5], [7,5], [7,7], [8,7], [0,7]]
 town_path = Path("🟫", "", town_path_nodes, places["town"], True, 1)
-town_path_fix = gameObject(3,3,"town_path_fix","🟫",places["town"],True)
 mansion = gameObject(1,3,"mansion","🛕",places["town"],False)
 houses = [[5,2],[3,2],[5,4],[3,4],[3,6],[5,6],[3,8],[5,8] ]
 for house in houses:
     housess = gameObject(house[0],house[1],"house","🏠",places["town"],False)
+
 rode = [[7,8],[7,7]]
 rodes = Path("🟫","",rode,places["deep_forest"], True, 1)
 forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
 for tree in forest_trees:
     forest_tree = gameObject(tree[0],tree[1],"tree", "🌲",places["deep_forest"],False)
+
 farm_path = [[0,7],[7,7]]
 farm_rode = Path("🟫","",farm_path,places["farm"], True, .1)
 Farm_markCheck = [[3,1],[3,6]]
@@ -610,16 +622,7 @@ farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True, .2)
 farm_mark = [[1,1],[8,6]]
 farm_marken = Path("🟨","",farm_mark,places["farm"],True, .1)
 
-offset = [5,0]
-for x in range(2):
-    for y in range(9):
-        xOffset = x +offset[0]
-        yOffset = y +offset[1]
-        name = "lake" + str(xOffset) + str(yOffset)
-        lake = Lake(xOffset,yOffset,name,"🟦", places["outside"], True)
 
-nodes = [[1,6], [3,6], [3,7], [8,7]]
-path = Path("⬛", "🟫", nodes, places["outside"], True, 1)
 
 cutscene = False
 kingwalk = False
