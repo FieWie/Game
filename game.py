@@ -165,10 +165,6 @@ class Player(gameObject):
         self.current_weapon = None
         
     def move_player(self, move):
-        if move == "q":
-            print("Exiting the game.")
-            return False
-
         x, y = player.getPosition()
         newX,newY = x,y
 
@@ -539,6 +535,9 @@ Get help with: "H"."""
             time.sleep(2)
             print("\n"*2)
             continue
+        elif letter == "q":
+            animate_text("Exiting the game.")
+            exit()
         time.sleep(1)
         print_grid()
 
