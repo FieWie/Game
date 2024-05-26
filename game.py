@@ -514,7 +514,6 @@ def check_input():
         letter = msvcrt.getch().decode('utf-8').lower()
         print("\n"*2)
         if letter in ["w", "a", "s", "d"]:
-            print("move player")
             player.move_player(letter)
             break
         elif letter == "u":
@@ -601,7 +600,6 @@ places = {
     "farm":Place("farm","Konrad love this","🟩"),
     "desert":Place("desert","Its so hot here","🟨"),
 }
-currentPlace = places["house"]
 
 linkObjects = {
     "door": LinkObject((8,4), "door", "🚪", places["house"], None),
@@ -652,9 +650,10 @@ cow_list = [
 ]
 
 
-currentPlace = places["house"]
+currentPlace = places["desert"]
 player.setPlace(currentPlace)
 
+#Outside
 offset = [5,0]
 for x in range(2):
     for y in range(9):
@@ -665,11 +664,13 @@ for x in range(2):
 nodes = [[1,6], [3,6], [3,7], [8,7]]
 path = Path("⬛", "🟫", nodes, places["outside"], True, 1)
 
+#Forest
 stone = gameObject(5,0,"stone", "🪨 ", places["forest"],False)
 stone2 = gameObject(3,0,"stone","🪨 ", places["forest"],False)
 trees = [[8,5],[0,5]]
 tree = Path("🌲","",trees,places["forest"], False, 1)
 
+#Town
 town_path_nodes = [[7,1],[7,3],[2,3],[7,3],[7,5], [7,5], [7,7], [8,7], [0,7]]
 town_path = Path("🟫", "", town_path_nodes, places["town"], True, 1)
 mansion = gameObject(1,3,"mansion","🛕",places["town"],False)
@@ -677,12 +678,14 @@ houses = [[5,2],[3,2],[5,4],[3,4],[3,6],[5,6],[3,8],[5,8] ]
 for house in houses:
     housess = gameObject(house[0],house[1],"house","🏠",places["town"],False)
 
+#deep_forest
 rode = [[7,8],[7,7]]
 rodes = Path("🟫","",rode,places["deep_forest"], True, 1)
 forest_trees = [[3,7],[1,5],[2,0],[6,4],[7,1],[0,3],[4,2],[8,6],[5,0],[3,7], [1, 4], [2, 6], [6, 0], [4, 5], [7, 3], [0, 1], [5, 8], [1, 2],[8,4],[3,7],[5,0],[3,0]]
 for tree in forest_trees:
     forest_tree = gameObject(tree[0],tree[1],"tree", "🌲",places["deep_forest"],False)
 
+#farm
 farm_path = [[0,7],[7,7]]
 farm_rode = Path("🟫","",farm_path,places["farm"], True, .1)
 Farm_markCheck = [[3,1],[3,6]]
@@ -692,6 +695,10 @@ farm_marken = Path ("🟩","",Farm_markCheck,places["farm"],True, .2)
 farm_mark = [[1,1],[8,6]]
 farm_marken = Path("🟨","",farm_mark,places["farm"],True, .1)
 
+#desert
+cactus_pos = [[4,4],[7,1],[6,6],[2,1],[8,4],[7,8],[0,6],[2,7]]
+for pos in cactus_pos:
+    cactus = gameObject(pos[0],pos[1],"cactus","🌵", places["desert"], True)
 
 
 cutscene = False
