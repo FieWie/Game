@@ -182,10 +182,20 @@ class Player(gameObject):
             if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
                 #Checks if the player can move
                 player.setPosition(newX, newY)  
+                collided_obj.interact()  
+        else:
+            player.setPosition(newX, newY)     
+
+    def check_collision_player(self):
+        collided_obj = check_collision(self.x,self.y, currentPlace)
+        if collided_obj and not isinstance(collided_obj, LinkObject):
+            if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
+                #Checks if the player can move
+                player.setPosition(self.x, self.y)  
                 collided_obj.interact()
                    
         else:
-            player.setPosition(newX, newY)      
+            player.setPosition(self.x, self.y)   
 
     def youded(self):
         for i in range(grid_size):
@@ -216,7 +226,6 @@ class Weapon(gameObject):
         super().__init__(x, y, name, emoji, place,collision,sortlayer)
         self.damage = damage
         self.durability = durability
-        player.current_weapon = None
         self.current_name = None
 
     def interact(self):
@@ -234,6 +243,9 @@ class Weapon(gameObject):
             return False    
     
     def take_weapon(self):
+        player.current_weapon = self
+        player.has_sword = True
+        print("current weapon: ", player.current_weapon.name)
         inventory.add_item(self)
         self.place.removeObject(self)
         self.place = None
@@ -537,6 +549,8 @@ Get help with: "H"."""
         elif letter == "q":
             animate_text("Exiting the game.")
             exit()
+        else:
+            break
         time.sleep(1)
         print_grid()
 
@@ -650,7 +664,7 @@ cow_list = [
 ]
 
 
-currentPlace = places["desert"]
+currentPlace = places["house"]
 player.setPlace(currentPlace)
 
 #Outside
@@ -723,8 +737,8 @@ def main():
             kingCow.cow_king_walk(KingCow_crown) 
         for cow in cow_list:
             cow.cow_walk()
-        
         print_grid()
+        player.check_collision_player()
 
 if __name__ == "__main__":
     main()
