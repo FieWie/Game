@@ -289,14 +289,14 @@ class Inventory:
         if len(self.weapons) != 0:
             string += "You currently have these weapons:\n"
             for weapon in self.weapons:
-                string += f"- {weapon.name} \n"
-        else: string += ("You do not have any weapons yet:" + "\n"*2)
+                string += f"- {weapon.name}. Damage: {weapon.damage}. Durability {weapon.durability} \n"
+        else: string += ("You do not have any weapons yet." + "\n"*2)
 
         if len(self.food) != 0:
             string += "You currently have these foods:\n"
             for food in self.food:
                 string += f"- {food.name} \n"
-        else: string += "You do not have any food yet:\n"
+        else: string += "You do not have any food yet.\n"
         animate_text(string)
 
 
@@ -535,6 +535,7 @@ def check_input():
         elif letter == "l":
             player.current_weapon.drop_weapon(player.x, player.y, player.place)
             animate_text("You dropped weapon lol!")
+            break
 
         elif letter == "h":
             string = """
@@ -738,7 +739,6 @@ def main():
         for cow in cow_list:
             cow.cow_walk()
         print_grid()
-        player.check_collision_player()
 
 if __name__ == "__main__":
     main()

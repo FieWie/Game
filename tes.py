@@ -297,7 +297,7 @@ enemy = Enemy(3, 3, "monkey", "🦧", places["house"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 
 ye = [[0,0], [8,0]]
-obstacles = Obstacles("obj", "🦧", ye, places["house"], True, 1)
+obstacles = Obstacles("obj", "❗", ye, places["house"], True, 1)
 
 running = True
 
