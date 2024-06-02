@@ -216,6 +216,43 @@ class Lazer(GameObjects):
             time.sleep(1/self.speed)
 
 
+class SequenceHandler:
+    def __init__(self):
+        self.sequences = []
+        self.current_sequence = None
+        self.sequence_thread = None
+
+    def add_sequence(self, sequence):
+        pass
+    def start_sequence(self, sequence_index):
+        pass
+    def stop_sequence(self):
+        pass
+
+    def is_sequence_running(self):
+        pass
+
+class Sequence:
+    def __init__(self, name, steps):
+        self.name = name
+        self.steps = steps
+
+    def run(self):
+        for step in self.steps:
+            pass
+
+    def stop(self):
+        pass
+
+class SequenceStep:
+    def __init__(self, actions, delay_after=0.5):
+        self.actions = actions
+        self.delay_after = delay_after
+
+    def execute(self):
+        self.actions()
+    
+
 
 def convertTuple(tup):
     str = "".join(tup)
@@ -366,12 +403,32 @@ currentPlace = places["house"]
 enemy = Enemy(0, 3, "monkey", "🦧", places["house"], True, 3)
 player = Player(4, 5, "player", "🈸", places["house"], True, 10)
 
+"""
+
+
+define actions:
+ye = [[4, 10], [5, 18]]
+Lazerhorizontal = Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1, event2, threading.Event())
+ye = [[4, 10], [5, 18]]
+lazervertical = Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1, event2, threading.Event())
+spike = SpikeHandler("spike", "🟥", 12, places["house"], True, 1, event1, event2)
+
+List with different actions (every list inside is one sequence step):
+sequence1 = [[Lazerhorizontal,lazervertical], [spikes]]
+
+# Create a sequence handler
+sequence_handler = SequenceHandler()
+sequence_handler.add_sequence(spike_sequence)
+sequence_handler.add_sequence(lazer_sequence)
+"""
+
+
 # Create threading events for synchronization
 event1 = threading.Event()
 event2 = threading.Event()
 
 # Initialize the SpikeHandler and Lazer with the events
-spike = SpikeHandler("spike", "🟥", 1, places["house"], True, 1, event1, event2)
+spike = SpikeHandler("spike", "🟥", 12, places["house"], True, 1, event1, event2)
 ye = [[4, 10], [5, 18]]
 lazers = Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1, event2, threading.Event())
 
