@@ -9,7 +9,9 @@ grid_size = 9
 
 textDelay = .03
 currentPlace = None
-
+def roll_d20():
+    directions = ["a", "d", "s", "w"]
+    return random.choice(directions)
 
 class Place:
     def __init__(self, name, description, player_start, emoji):
@@ -283,11 +285,10 @@ class Enemy(gameObject):
         self.isactive = False
         self.emoji = self.deadEmoji
         self.can_collide = False
+    
+   
 
     
-    def interact(self ):
-        self.FightEnemy()
-
     def FightEnemy(self):
         string = "Want to fight the "+self.name + " yes or no: "
         animate_text(string, textDelay)
@@ -336,7 +337,9 @@ class Enemy(gameObject):
             animate_text("nice", textDelay)  
             return False  
 
-    
+
+
+
 class Lake(gameObject):
     def __init__(self, x, y, name, emoji, place, collision):
         super().__init__(x, y, name, emoji, place,collision, sortlayer=0)
@@ -440,7 +443,7 @@ enemy = Enemy(3, 3, "monkey", "🦧", places["outside"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 orge = Enemy(5,3, "orge","🧌 ",places["forest"],True,2)
 Bear = Enemy(4,0, "bear", "🧸", places["deep_forest"],True,2)
-Cow = Enemy(5,3,"Cow","🐄",places["farm"],True,2)
+cow = Enemy(5,3,"Cow","🐄",places["farm"],True,2)
 wodden_sword = weapon(1, 10, 3,5,"woden-sword", "🗡️ ",places["house"],True,0)
 knife = weapon(2, 10,0,0,"knife","🔪",places["outside"],True,0)
 currentPlace = places["house"]
@@ -496,7 +499,6 @@ def main():
         if enemy.isactive:
             enemy.monkey_run()
         print_grid()
-
 if __name__ == "__main__":
     main()
 
