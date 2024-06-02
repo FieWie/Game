@@ -1,7 +1,9 @@
+
 import threading
 import time
 import msvcrt
 import os
+import random
 
 grid_size = 9
 textDelay = .03
@@ -131,20 +133,49 @@ class Path(GameObjects):
             block = gameObject(block[0], block[1], "path", emoji, self.place, self.can_collide, self.layer)
         return path
 
-class Lazer(GameObjects):
-    def __init__(self, name, emoji, nodes, place, directionX, directionY, speed, can_collide, layer):
-        super().__init__(name, emoji, nodes, place, can_collide, layer)
-        self.directionX = directionX
-        self.directionY = directionY
-        self.speed = speed
+class Spike(GameObjects):
+    def __init__(self, name, emoji, num_spikes, place, can_collide, layer, grid_size):
+        self.num_spikes = num_spikes
+        self.grid_size = grid_size
+        super().__init__(name, emoji, [], place, can_collide, layer)
 
-class Lazer(GameObjects):
-    def __init__(self, name, emoji, nodes, place, directionX, directionY, speed, can_collide, layer):
-        super().__init__(name, emoji, nodes, place, can_collide, layer)
-        self.directionX = directionX
-        self.directionY = directionY
-        self.speed = speed
+    def spawn_objects(self):
+        coordinates = generate_random_coordinates(self.num_spikes, self.grid_size)
+        for coord in coordinates:
+            block = gameObject(coord[0], coord[1], self.name, self.emoji, self.place, self.can_collide, self.layer)
+            self.gameObjects.append(block)
 
+    def Print_spike(self):
+        for _ in range(5):  # Flash 5 times
+            for obj in self.gameObjects:
+                obj.emoji = "🟥"  # Red block
+            time.sleep(0.3)  # Flash interval
+            for obj in self.gameObjects:
+                obj.emoji = "⬛"  # Empty block
+            time.sleep(0.3)
+        
+        for obj in self.gameObjects:
+            obj.emoji = "⬜"  # Turn red blocks to white
+        time.sleep(5)
+
+        for obj in self.gameObjects:
+            obj.deleteObject()  # Remove white blocks
+
+
+
+
+class cow_attack(GameObjects):
+    def __init__(self, name, emoji, place, can_collide, layer, grid_size):
+        self.grid_size = grid_size
+        super().__init__(name, emoji, [], place, can_collide, layer)
+
+    def cow_walk(self):
+        ""
+
+
+def convertTuple(tup):
+    str = "".join(tup)
+    return str
     def move_objects(self):
         global running
         while running:
@@ -226,6 +257,7 @@ class Player(gameObject):
     def interact(self):
         self.youded()
 
+
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place, collision, health):
         super().__init__(x, y, name, emoji, place, collision, sortlayer=2)
@@ -244,16 +276,16 @@ class Enemy(gameObject):
                     self.setPosition(self.x, newY)
                     collided_obj.interact()
             else:
-                self.setPosition(self.x, newY)
+                self.setPosition(self.x, newY)    
             if self.y == 0 or self.y == grid_size - 1:
+                # Change the movement direction to make the object go in the opposite direction
                 self.rörelse_riktning *= -1
-
             time.sleep(framerate)
-
+            
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
-            self.health = 0
+            self.health = 0  # Ensure health doesn't go below zero
 
     def deleteObject(self):
         self.isactive = False
@@ -301,13 +333,19 @@ places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
 }
 
+def generate_random_coordinates(num_coordinates, grid_size):
+    coordinates = set()
+    while len(coordinates) < num_coordinates:
+        x = random.randint(0, grid_size - 1)
+        y = random.randint(0, grid_size - 1)
+        coordinates.add((x, y))
+    return list(coordinates)
+
 currentPlace = places["house"]
 
 enemy = Enemy(0, 3, "monkey", "🦧", places["house"], True, 3)
 player = Player(4, 5, "player", "🈸", places["house"], True, 10)
-
-ye = [[4, 10], [5, 18]]
-lazers = Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1)
+spike = Spike("spike", "🟥", 10, places["house"], True, 1, grid_size)
 
 running = True
 
@@ -319,18 +357,27 @@ def main():
     print_thread = threading.Thread(target=print_grid)
     input_thread = threading.Thread(target=player.move_player)
     monkey_thread = threading.Thread(target=enemy.monkey_run)
-    obstacles_thread = threading.Thread(target=lazers.move_objects)
+    obstacles_thread = threading.Thread(target=move_obstacles)
+    spike_thread = threading.Thread(target=spike.Print_spike)
 
     print_thread.start()
     input_thread.start()
     monkey_thread.start()
     obstacles_thread.start()
+    spike_thread.start()
 
     input_thread.join()
     running = False
     print_thread.join()
     monkey_thread.join()
     obstacles_thread.join()
+    spike_thread.join()
+
+def move_obstacles():
+    global running
+    while running:
+        # This function could be used to move other obstacles if needed
+        time.sleep(framerate)
 
 if __name__ == "__main__":
     main()
