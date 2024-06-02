@@ -5,7 +5,7 @@ import os
 
 grid_size = 9
 textDelay = .03
-framerate = 1
+framerate = 60
 
 class Place:
     def __init__(self, name, description, player_start, emoji):
@@ -22,13 +22,15 @@ class Place:
         self.objects.append(obj)
 
     def removeObject(self, obj):
-        self.objects.remove(obj)
+        if obj in self.objects:
+            self.objects.remove(obj)
 
     def getObjects(self):
         return self.objects
 
 class gameObject:
     isactive = True
+
     def __init__(self, x, y, name, emoji, place, can_collide, speed=1, sortlayer=1, deadEmoji="💀"):
         self.x = x
         self.y = y
@@ -41,7 +43,7 @@ class gameObject:
         self.deadEmoji = deadEmoji
 
         place.addObject(self)
-        
+
     def getPosition(self):
         return [self.x, self.y]
 
@@ -51,42 +53,36 @@ class gameObject:
 
     def setPlace(self, place):
         self.place = place
-        
+
     def getPlace(self):
         return self.place
-    
+
     def deleteObject(self):
         if self.place:
             self.place.removeObject(self)
             self.place = None
-        else:
-            print("Object is not placed anywhere.")
-    
+
     def isInsideOfScreen(self):
-        if not (0 <= self.x < grid_size):
-            print("is inside of screen x:", self.x)
-            return False
-        elif not (0 <= self.y < grid_size):
-            print("is inside of screen y", self.y)
-            return False
-        else:
-            return True
-            
+        return 0 <= self.x < grid_size and 0 <= self.y < grid_size
+
     def interact(self):
         return self.can_collide
-        
+
+    def __del__(self):
+        pass
+
 class GameObjects:
     gameObjects = []
+
     def __init__(self, name, emoji, nodes, place, can_collide, layer=1):
         self.name = name
         self.emoji = emoji
         self.nodes = nodes
         self.place = place
-        self.can_collide = can_collide  # Define collision attribute
+        self.can_collide = can_collide
         self.layer = layer
         self.path = self.spawn_objects()
 
-    # Makes objects
     def spawn_objects(self):
         path = []
         for i in range(len(self.nodes) - 1):
@@ -96,30 +92,30 @@ class GameObjects:
         for block in path:
             block = gameObject(block[0], block[1], self.name, self.emoji, self.place, self.can_collide, self.layer)
             self.gameObjects.append(block)
-        return path 
-    
+        return path
+
     def interpolate_points(self, x1, y1, x2, y2):
         path = []
         dx = x2 - x1
         dy = y2 - y1
-        if dx == 0:  # Vertical line
+        if dx == 0:
             for y in range(min(y1, y2), max(y1, y2) + 1):
                 path.append([x1, y])
-        elif dy == 0:  # Horizontal line
+        elif dy == 0:
             for x in range(min(x1, x2), max(x1, x2) + 1):
                 path.append([x, y1])
-        else:  # Diagonal line (assuming 45 degrees)
+        else:
             for x in range(min(x1, x2), max(x1, x2) + 1):
                 for y in range(min(y1, y2), max(y1, y2) + 1):
                     path.append([x, y])
         return path
-    
+
 class Path(GameObjects):
     def __init__(self, name, path_emoji, bridge_emoji, nodes, place, can_collide, layer):
-        super().__init__(name, path_emoji, bridge_emoji, nodes, place, can_collide, layer)
+        self.bridge_emoji = bridge_emoji
+        super().__init__(name, path_emoji, nodes, place, can_collide, layer)
         self.path = self.spawn_objects()
 
-    # Makes path
     def spawn_objects(self):
         path = []
         for i in range(len(self.nodes) - 1):
@@ -133,26 +129,46 @@ class Path(GameObjects):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
             block = gameObject(block[0], block[1], "path", emoji, self.place, self.can_collide, self.layer)
-        return path 
+        return path
 
-class Obstacles(GameObjects):
-    def __init__(self, name, emoji, nodes, place, can_collide, layer):
+class Lazer(GameObjects):
+    def __init__(self, name, emoji, nodes, place, directionX, directionY, speed, can_collide, layer):
         super().__init__(name, emoji, nodes, place, can_collide, layer)
+        self.directionX = directionX
+        self.directionY = directionY
+        self.speed = speed
 
-    def move_objects(self, directionX, directionY):
-        for obj in self.gameObjects:
-            x, y = obj.getPosition()
-            newX = x + directionX
-            newY = y + directionY
-            obj.setPosition(newX, newY)
-            if not obj.isInsideOfScreen():
-                print("outside of screen pos:", newY)
-                player.youded()
-            
+class Lazer(GameObjects):
+    def __init__(self, name, emoji, nodes, place, directionX, directionY, speed, can_collide, layer):
+        super().__init__(name, emoji, nodes, place, can_collide, layer)
+        self.directionX = directionX
+        self.directionY = directionY
+        self.speed = speed
 
-def convertTuple(tup):
-    str = "".join(tup)
-    return str
+    def move_objects(self):
+        global running
+        while running:
+            for obj in self.gameObjects:
+                x, y = obj.getPosition()
+                newX = x + self.directionX
+                newY = y + self.directionY
+
+                # Check if the lazer object has touched the left wall
+                if newY < 0:
+                    # Remove all objects from the place
+                    time.sleep(1)
+                    for obj_to_remove in self.gameObjects:
+                        obj_to_remove.deleteObject()
+                        
+                obj.setPosition(newX, newY)
+
+                collided_obj = check_collision(newX, newY, currentPlace)
+                if collided_obj:
+                    if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
+                        collided_obj.interact()
+
+                
+            time.sleep(1/self.speed)
 
 class Player(gameObject):
     has_sword = False
@@ -160,7 +176,7 @@ class Player(gameObject):
     def __init__(self, x, y, name, emoji, place, collision, sortlayer):
         super().__init__(x, y, name, emoji, place, collision, sortlayer)
         self.current_weapon = None
-        
+
     def move_player(self):
         global running
         while running:
@@ -192,9 +208,9 @@ class Player(gameObject):
                         self.setPosition(newX, newY)
                         collided_obj.interact()
                 else:
-                    self.setPosition(newX, newY)      
-            time.sleep(0.05)  # Add a small delay to prevent too rapid movement
-    
+                    self.setPosition(newX, newY)
+            time.sleep(0.05)
+
     def youded(self):
         global running
         running = False
@@ -208,17 +224,18 @@ class Player(gameObject):
         exit()
 
     def interact(self):
-        player.youded()
+        self.youded()
 
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place, collision, health):
         super().__init__(x, y, name, emoji, place, collision, sortlayer=2)
         self.health = health
     rörelse_riktning = 1
+
     def monkey_run(self):
         global running
-        while running: 
-            newY =  self.y + self.rörelse_riktning
+        while running:
+            newY = self.y + self.rörelse_riktning
 
             collided_obj = check_collision(self.x, newY, currentPlace)
             if collided_obj:
@@ -227,17 +244,16 @@ class Enemy(gameObject):
                     self.setPosition(self.x, newY)
                     collided_obj.interact()
             else:
-                self.setPosition(self.x, newY)    
+                self.setPosition(self.x, newY)
             if self.y == 0 or self.y == grid_size - 1:
-                # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
                 self.rörelse_riktning *= -1
-            # Additional enemy-specific attributes or methods can be added here
-              
+
             time.sleep(framerate)
+
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
-            self.health = 0  # Säkerställ att hälsan inte går under noll
+            self.health = 0
 
     def deleteObject(self):
         self.isactive = False
@@ -247,7 +263,6 @@ class Enemy(gameObject):
     def interact(self):
         player.youded()
 
-# Checks the main object if there is one and returns.
 def check_collision(x, y, place):
     for obj in place.getObjects():
         if obj.getPosition() == [x, y]:
@@ -257,33 +272,30 @@ def check_collision(x, y, place):
 def print_grid():
     global running
     while running:
-        os.system('cls')  # Clear the console screen
+        os.system('cls' if os.name == 'nt' else 'clear')  # Clear the console screen
         for i in range(grid_size):
             for j in range(grid_size):
-                # Initialize variables to track the object with the highest sort layer
                 highest_sort_layer_obj = None
-                highest_sort_layer = float('-inf')  # Initialize with negative infinity
-                
-                # Loop through all game objects in the current place
+                highest_sort_layer = float('-inf')
                 for currentObj in currentPlace.objects:
                     if [i, j] == currentObj.getPosition():
                         if currentObj.sortlayer > highest_sort_layer:
                             highest_sort_layer = currentObj.sortlayer
                             highest_sort_layer_obj = currentObj
-                
+
                 if highest_sort_layer_obj:
-                    print(highest_sort_layer_obj.emoji, end=" ")  # Print the emoji of the object with the highest sort layer
+                    print(highest_sort_layer_obj.emoji, end=" ")
                 else:
-                    print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
+                    print(currentPlace.emoji, end=" ")
             print()
-        time.sleep(0.1)  # Add a small delay for smoother grid printing
+        time.sleep(0.1)
 
 def animate_text(string, delay=textDelay):
     for char in string:
-        print(char, end='', flush=True) 
-        time.sleep(delay) 
+        print(char, end='', flush=True)
+        time.sleep(delay)
     print()
-    time.sleep(1)  
+    time.sleep(1)
 
 places = {
     "house": Place("house", "You are inside the house.", [4, 5], "⬛"),
@@ -291,23 +303,23 @@ places = {
 
 currentPlace = places["house"]
 
-enemy = Enemy(3, 3, "monkey", "🦧", places["house"], True, 3)
+enemy = Enemy(0, 3, "monkey", "🦧", places["house"], True, 3)
 player = Player(4, 5, "player", "🈸", places["house"], True, 10)
 
-ye = [[0, 0], [8, 0]]
-obstacles = Obstacles("obj", "❗", ye, places["house"], True, 1)
+ye = [[4, 10], [5, 18]]
+lazers = Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1)
 
 running = True
 
 def main():
     global running
-    animate_text("Welcome to the game!", textDelay)
+    #animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
 
     print_thread = threading.Thread(target=print_grid)
     input_thread = threading.Thread(target=player.move_player)
     monkey_thread = threading.Thread(target=enemy.monkey_run)
-    obstacles_thread = threading.Thread(target=move_obstacles)
+    obstacles_thread = threading.Thread(target=lazers.move_objects)
 
     print_thread.start()
     input_thread.start()
@@ -319,12 +331,6 @@ def main():
     print_thread.join()
     monkey_thread.join()
     obstacles_thread.join()
-
-def move_obstacles():
-    global running
-    while running:
-        obstacles.move_objects(0, 1)
-        time.sleep(framerate)
 
 if __name__ == "__main__":
     main()
