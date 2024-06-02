@@ -2,11 +2,16 @@ import threading
 import time
 import msvcrt
 import random
+import queue
 
 grid_size = 9
 textDelay = .03
 
-framerate = 1
+framerate = 3
+
+update_queue = queue.Queue() 
+lock = threading.Lock()
+
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -162,8 +167,7 @@ class Player(gameObject):
         self.current_weapon = None
         
     def move_player(self):
-        global running
-        while running:
+        if msvcrt.kbhit():
             move = msvcrt.getch().decode('utf-8').lower()
             if move == "q":
                 print("Exiting the game.")
@@ -181,8 +185,6 @@ class Player(gameObject):
                 newY -= 1
             elif move == "d" and y < grid_size - 1:
                 newY += 1
-            else:
-                continue
 
             collided_obj = check_collision(newX,newY, currentPlace)
             if collided_obj:
@@ -191,9 +193,9 @@ class Player(gameObject):
                     self.setPosition(newX, newY)
                     collided_obj.interact()
             else:
+                update_queue.put((self, newX, newY))
                 self.setPosition(newX, newY)      
-            time.sleep(framerate)  # Add a small delay to prevent too rapid movement
-    
+
     def youded(self):
         global running
         running = False
@@ -215,24 +217,23 @@ class Enemy(gameObject):
         self.health = health
     rörelse_riktning = 1
     def monkey_run(self):
-        global running
-        while running: 
-            newY =  self.y + self.rörelse_riktning
+       
+        newY =  self.y + self.rörelse_riktning
 
-            collided_obj = check_collision(self.x,newY, currentPlace)
-            if collided_obj:
-                if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
-                    print("Collide with object: ", collided_obj.name)
-                    self.setPosition(self.x, newY)
-                    collided_obj.interact()
-            else:
-                self.setPosition(self.x, newY)    
-            if self.y == 0 or self.y == grid_size - 1:
-                # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
-                self.rörelse_riktning *= -1
-            # Additional enemy-specific attributes or methods can be added here
-              
-            time.sleep(framerate)
+        collided_obj = check_collision(self.x,newY, currentPlace)
+        if collided_obj:
+            if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
+                print("Collide with object: ", collided_obj.name)
+                self.setPosition(self.x, newY)
+                collided_obj.interact()
+        else:
+            self.setPosition(self.x, newY)    
+        if self.y == 0 or self.y == grid_size - 1:
+            # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
+            self.rörelse_riktning *= -1
+        # Additional enemy-specific attributes or methods can be added here
+            
+        time.sleep(framerate)
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
@@ -254,31 +255,27 @@ def check_collision(x,y, place):
     return None
 
 def print_grid():
-    global running
-    while running:
-        print("\n" * 10)
-        for i in range(grid_size):
-            for j in range(grid_size):
-                # Initialize variables to track the object with the highest sort layer
-                highest_sort_layer_obj = None
-                highest_sort_layer = float('-inf')  # Initialize with negative infinity
-                
-                # Loop through all game objects in the current place
-                for currentObj in currentPlace.objects:
-                    if [i, j] == currentObj.getPosition():
-                        if currentObj.sortlayer > highest_sort_layer:
-                            highest_sort_layer = currentObj.sortlayer
-                            highest_sort_layer_obj = currentObj
-                
-                if highest_sort_layer_obj:
-                    print(highest_sort_layer_obj.emoji, end=" ")  # Print the emoji of the object with the highest sort layer
-                else:
-                    print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
-            print()
-        obstacles.move_objects(0,1)
+    print("\n" * 10)
+    for i in range(grid_size):
+        for j in range(grid_size):
+            # Initialize variables to track the object with the highest sort layer
+            highest_sort_layer_obj = None
+            highest_sort_layer = float('-inf')  # Initialize with negative infinity
+            
+            # Loop through all game objects in the current place
+            for currentObj in currentPlace.objects:
+                if [i, j] == currentObj.getPosition():
+                    if currentObj.sortlayer > highest_sort_layer:
+                        highest_sort_layer = currentObj.sortlayer
+                        highest_sort_layer_obj = currentObj
+            
+            if highest_sort_layer_obj:
+                print(highest_sort_layer_obj.emoji, end=" ")  # Print the emoji of the object with the highest sort layer
+            else:
+                print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
+        print()
 
-        delay = 1/framerate
-        time.sleep(delay)
+    time.sleep(1/framerate)
 
 def animate_text(string, delay = textDelay):
     for char in string:
@@ -297,7 +294,7 @@ enemy = Enemy(3, 3, "monkey", "🦧", places["house"],True,3)
 player = Player(4, 5, "player", "🈸", places["house"],True,10)
 
 ye = [[0,0], [8,0]]
-obstacles = Obstacles("obj", "❗", ye, places["house"], True, 1)
+#obstacles = Obstacles("obj", "❗", ye, places["house"], True, 1)
 
 running = True
 
@@ -305,7 +302,14 @@ def main():
     global running
     animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
-
+    while True:
+        if enemy.isactive:
+            enemy.monkey_run()
+        global cutscene
+        global kingCow
+        print_grid()
+    
+    """
     print_thread = threading.Thread(target=print_grid)
     input_thread = threading.Thread(target=player.move_player)
     monkey_thread = threading.Thread(target=enemy.monkey_run)
@@ -317,7 +321,7 @@ def main():
     input_thread.join()
     running = False
     print_thread.join()
-    monkey_thread.join()
-
+    monkey_thread.join()"""
+    
 if __name__ == "__main__":
     main()
