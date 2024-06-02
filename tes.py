@@ -1,12 +1,11 @@
 import threading
 import time
 import msvcrt
-import random
 
 grid_size = 9
 textDelay = .03
-
 framerate = 1
+
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -216,8 +215,9 @@ class Enemy(gameObject):
         self.health = health
     rörelse_riktning = 1
     def monkey_run(self):
-       
-        newY =  self.y + self.rörelse_riktning
+        global running
+        while running: 
+            newY =  self.y + self.rörelse_riktning
 
             collided_obj = check_collision(self.x, newY, currentPlace)
             if collided_obj:
@@ -306,10 +306,12 @@ def main():
     print_thread = threading.Thread(target=print_grid)
     input_thread = threading.Thread(target=player.move_player)
     monkey_thread = threading.Thread(target=enemy.monkey_run)
+    obstacles_thread = threading.Thread(target=move_obstacles)
 
     print_thread.start()
     input_thread.start()
     monkey_thread.start()
+    obstacles_thread.start()
 
     input_thread.join()
     running = False
