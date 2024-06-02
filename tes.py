@@ -1,4 +1,3 @@
-
 import threading
 import time
 import msvcrt
@@ -55,9 +54,6 @@ class gameObject:
 
     def setPlace(self, place):
         self.place = place
-
-    def getPlace(self):
-        return self.place
 
     def deleteObject(self):
         if self.place:
@@ -145,13 +141,15 @@ class Spike(gameObject):
         
 class SpikeHandler:
     gameObjects = []
-    def __init__(self, name, emoji, num_spikes, place, can_collide, layer):
+    def __init__(self, name, emoji, num_spikes, place, can_collide, layer, event, next_event):
         self.name = name
         self.emoji = emoji
         self.num_spikes = num_spikes
         self.place = place
         self.can_collide = can_collide
         self.layer = layer
+        self.event = event
+        self.next_event = next_event
         self.spawn_objects()
 
     def spawn_objects(self):
@@ -161,6 +159,7 @@ class SpikeHandler:
             self.gameObjects.append(block)
 
     def Print_spike(self):
+        self.event.wait()
         for _ in range(5):  # Flash 5 times
             for obj in self.gameObjects:
                 obj.emoji = "🟥"  # Red block
@@ -178,22 +177,49 @@ class SpikeHandler:
         for obj in self.gameObjects:
             obj.deleteObject()  # Remove white blocks
 
+        self.next_event.set()
 
+class Lazer(GameObjects):
+    def __init__(self, name, emoji, nodes, place, directionX, directionY, speed, can_collide, layer, event, next_event):
+        super().__init__(name, emoji, nodes, place, can_collide, layer)
+        self.directionX = directionX
+        self.directionY = directionY
+        self.speed = speed
+        self.event = event
+        self.next_event = next_event
 
+    def move_objects(self):
+        global running
+        self.event.wait()
+        while running:
+            for obj in self.gameObjects:
+                x, y = obj.getPosition()
+                newX = x + self.directionX
+                newY = y + self.directionY
 
-class cow_attack(GameObjects):
-    def __init__(self, name, emoji, place, can_collide, layer, grid_size):
-        self.grid_size = grid_size
-        super().__init__(name, emoji, [], place, can_collide, layer)
+                # Check if the lazer object has touched the left wall
+                if newY < 0:
+                    # Remove all objects from the place
+                    time.sleep(1)
+                    for obj_to_remove in self.gameObjects:
+                        obj_to_remove.deleteObject()
+                    self.next_event.set()
+                    return
+                        
+                obj.setPosition(newX, newY)
 
-    def cow_walk(self):
-        ""
+                collided_obj = check_collision(newX, newY, currentPlace)
+                if collided_obj:
+                    if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
+                        collided_obj.interact()
+
+            time.sleep(1/self.speed)
+
 
 
 def convertTuple(tup):
     str = "".join(tup)
     return str
-
 
 class Player(gameObject):
     has_sword = False
@@ -339,7 +365,15 @@ currentPlace = places["house"]
 
 enemy = Enemy(0, 3, "monkey", "🦧", places["house"], True, 3)
 player = Player(4, 5, "player", "🈸", places["house"], True, 10)
-spike = SpikeHandler("spike", "🟥", 10, places["house"], True, 1)
+
+# Create threading events for synchronization
+event1 = threading.Event()
+event2 = threading.Event()
+
+# Initialize the SpikeHandler and Lazer with the events
+spike = SpikeHandler("spike", "🟥", 1, places["house"], True, 1, event1, event2)
+ye = [[4, 10], [5, 18]]
+lazers = Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1, event2, threading.Event())
 
 running = True
 
@@ -351,27 +385,25 @@ def main():
     print_thread = threading.Thread(target=print_grid)
     input_thread = threading.Thread(target=player.move_player)
     monkey_thread = threading.Thread(target=enemy.monkey_run)
-    obstacles_thread = threading.Thread(target=move_obstacles)
     spike_thread = threading.Thread(target=spike.Print_spike)
+    obstacles_thread = threading.Thread(target=lazers.move_objects)
+    
 
     print_thread.start()
     input_thread.start()
     monkey_thread.start()
-    obstacles_thread.start()
     spike_thread.start()
+    obstacles_thread.start()
+
+    event1.set()  # Start the sequence by setting the first event
 
     input_thread.join()
     running = False
     print_thread.join()
     monkey_thread.join()
-    obstacles_thread.join()
     spike_thread.join()
+    obstacles_thread.join()
 
-def move_obstacles():
-    global running
-    while running:
-        # This function could be used to move other obstacles if needed
-        time.sleep(framerate)
 
 if __name__ == "__main__":
     main()
