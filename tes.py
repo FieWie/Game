@@ -1,7 +1,6 @@
 import threading
 import time
 import msvcrt
-import os
 
 grid_size = 9
 textDelay = .03
@@ -281,7 +280,7 @@ def check_collision(x, y, place):
 def print_grid():
     global running
     while running:
-        os.system('cls')  # Clear the console screen
+        print("\n" * 10)
         for i in range(grid_size):
             for j in range(grid_size):
                 # Initialize variables to track the object with the highest sort layer
