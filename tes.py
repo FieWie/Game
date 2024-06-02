@@ -134,43 +134,19 @@ class Path(GameObjects):
             block = gameObject(block[0], block[1], "path", emoji, self.place, self.can_collide, self.layer)
         return path 
 
-class ObstacleHandler:
-    def __init__(self):
-        self.obstacles = []
-        self.obstacle_threads = []
-
-    def add_obstacle(self, obstacle):
-        self.obstacles.append(obstacle)
-        thread = threading.Thread(target=obstacle.move)
-        self.obstacle_threads.append(thread)
-
-    def remove_obstacle(self, obstacle):
-        self.obstacles.remove(obstacle)
-
-    def move_obstacles(self):
-        for obstacle in self.obstacles:
-            obstacle.move()
-
-    def interact_obstacles(self, other_object):
-        for obstacle in self.obstacles:
-            if obstacle.getPosition() == other_object.getPosition():
-                obstacle.interact(other_object)
-
-class Lazer(GameObjects):
-    def __init__(self, name, emoji, nodes, place, directionX, directionY, can_collide, layer):
+class Obstacles(GameObjects):
+    def __init__(self, name, emoji, nodes, place, can_collide, layer):
         super().__init__(name, emoji, nodes, place, can_collide, layer)
-        self.directionX = directionX
-        self.directionY = directionY
 
-    def move(self):
+    def move_objects(self, directionX, directionY):
         for obj in self.gameObjects:
             x, y = obj.getPosition()
-            newX = x + self.directionX
-            newY = y + self.directionY
+            newX = x + directionX
+            newY = y + directionY
             obj.setPosition(newX, newY)
-            if player.getPosition() == [newX, newY]:
+            if not obj.isInsideOfScreen():
+                print("outside of screen pos:", newY)
                 player.youded()
-
             
 
 def convertTuple(tup):
@@ -280,7 +256,7 @@ def check_collision(x, y, place):
 def print_grid():
     global running
     while running:
-        print("\n" * 10)
+        os.system('cls')
         for i in range(grid_size):
             for j in range(grid_size):
                 # Initialize variables to track the object with the highest sort layer
@@ -314,11 +290,11 @@ places = {
 
 currentPlace = places["house"]
 
-#enemy = Enemy(3, 3, "monkey", "🦧", places["house"], True, 3)
+enemy = Enemy(3, 3, "monkey", "🦧", places["house"], True, 3)
 player = Player(4, 5, "player", "🈸", places["house"], True, 10)
 
-ye = [[4, 9], [5, 14]]
-obstacles = Lazer("obj", "❗", ye, places["house"], 0,-1,True, 1)
+ye = [[0, 0], [8, 0]]
+obstacles = Obstacles("obj", "❗", ye, places["house"], True, 1)
 
 running = True
 
@@ -329,25 +305,25 @@ def main():
 
     print_thread = threading.Thread(target=print_grid)
     input_thread = threading.Thread(target=player.move_player)
+    monkey_thread = threading.Thread(target=enemy.monkey_run)
+    obstacles_thread = threading.Thread(target=move_obstacles)
 
     print_thread.start()
     input_thread.start()
-
-    # Create an ObstacleHandler and add your obstacles to it
-    obstacle_handler = ObstacleHandler()
-    obstacle_handler.add_obstacle(obstacles)
-
-    # Start a new thread for the obstacle handler
-    obstacle_thread = threading.Thread(target=obstacle_handler.move_obstacles)
-    obstacle_thread.start()
-
-    while running:
-        time.sleep(framerate)
+    monkey_thread.start()
+    obstacles_thread.start()
 
     input_thread.join()
     running = False
     print_thread.join()
-    obstacle_thread.join()  # Join the obstacle thread
+    monkey_thread.join()
+    obstacles_thread.join()
+
+def move_obstacles():
+    global running
+    while running:
+        obstacles.move_objects(0, 1)
+        time.sleep(framerate)
 
 if __name__ == "__main__":
     main()
