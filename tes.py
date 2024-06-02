@@ -2,16 +2,11 @@ import threading
 import time
 import msvcrt
 import random
-import queue
 
 grid_size = 9
 textDelay = .03
 
-framerate = 3
-
-update_queue = queue.Queue() 
-lock = threading.Lock()
-
+framerate = 1
 class Place:
     def __init__(self, name, description, player_start, emoji):
         self.name = name
@@ -34,7 +29,7 @@ class Place:
 
 class gameObject:
     isactive = True
-    def __init__(self, x, y, name, emoji, place, can_collide, speed=1, sortlayer = 1, deadEmoji = "💀"):
+    def __init__(self, x, y, name, emoji, place, can_collide, speed=1, sortlayer=1, deadEmoji="💀"):
         self.x = x
         self.y = y
         self.name = name
@@ -72,17 +67,17 @@ class gameObject:
             print("is inside of screen x:", self.x)
             return False
         elif not (0 <= self.y < grid_size):
-            print("is inside of screen y",self.y)
+            print("is inside of screen y", self.y)
             return False
-        else: return True
+        else:
+            return True
             
-
     def interact(self):
         return self.can_collide
         
 class GameObjects:
     gameObjects = []
-    def __init__(self,name, emoji, nodes, place, can_collide, layer= 1):
+    def __init__(self, name, emoji, nodes, place, can_collide, layer=1):
         self.name = name
         self.emoji = emoji
         self.nodes = nodes
@@ -91,7 +86,7 @@ class GameObjects:
         self.layer = layer
         self.path = self.spawn_objects()
 
-    #Makes objects
+    # Makes objects
     def spawn_objects(self):
         path = []
         for i in range(len(self.nodes) - 1):
@@ -99,7 +94,7 @@ class GameObjects:
             x2, y2 = self.nodes[i + 1]
             path.extend(self.interpolate_points(x1, y1, x2, y2))
         for block in path:
-            block = gameObject(block[0], block[1],self.name, self.emoji, self.place, self.can_collide, self.layer)
+            block = gameObject(block[0], block[1], self.name, self.emoji, self.place, self.can_collide, self.layer)
             self.gameObjects.append(block)
         return path 
     
@@ -121,10 +116,10 @@ class GameObjects:
     
 class Path(GameObjects):
     def __init__(self, name, path_emoji, bridge_emoji, nodes, place, can_collide, layer):
-        super().__init__(name,path_emoji, bridge_emoji, nodes, place, can_collide, layer)
+        super().__init__(name, path_emoji, bridge_emoji, nodes, place, can_collide, layer)
         self.path = self.spawn_objects()
 
-    #Makes path
+    # Makes path
     def spawn_objects(self):
         path = []
         for i in range(len(self.nodes) - 1):
@@ -133,7 +128,7 @@ class Path(GameObjects):
             path.extend(self.interpolate_points(x1, y1, x2, y2))
         for block in path:
             emoji = self.emoji
-            collide_obj = check_collision(block[0],block[1], self.place)
+            collide_obj = check_collision(block[0], block[1], self.place)
             if isinstance(collide_obj, Lake):
                 collide_obj.deleteObject()
                 emoji = self.bridge_emoji
@@ -142,14 +137,14 @@ class Path(GameObjects):
 
 class Obstacles(GameObjects):
     def __init__(self, name, emoji, nodes, place, can_collide, layer):
-        super().__init__(name,emoji, nodes, place, can_collide, layer)
+        super().__init__(name, emoji, nodes, place, can_collide, layer)
 
-    def move_objects(self,directionX, directionY):
+    def move_objects(self, directionX, directionY):
         for obj in self.gameObjects:
-            x,y=obj.getPosition()
-            newX = x+ directionX
-            newY = y+ directionY
-            obj.setPosition(newX,newY)
+            x, y = obj.getPosition()
+            newX = x + directionX
+            newY = y + directionY
+            obj.setPosition(newX, newY)
             if not obj.isInsideOfScreen():
                 print("outside of screen pos:", newY)
                 player.youded()
@@ -162,40 +157,44 @@ def convertTuple(tup):
 class Player(gameObject):
     has_sword = False
 
-    def __init__(self,x, y, name, emoji, place, collision, sortlayer):
-        super().__init__(x, y, name, emoji, place,collision,sortlayer)
+    def __init__(self, x, y, name, emoji, place, collision, sortlayer):
+        super().__init__(x, y, name, emoji, place, collision, sortlayer)
         self.current_weapon = None
         
     def move_player(self):
-        if msvcrt.kbhit():
-            move = msvcrt.getch().decode('utf-8').lower()
-            if move == "q":
-                print("Exiting the game.")
-                running = False
-                return
+        global running
+        while running:
+            if msvcrt.kbhit():
+                move = msvcrt.getch().decode('utf-8').lower()
+                if move == "q":
+                    print("Exiting the game.")
+                    running = False
+                    return
 
-            x, y = self.getPosition()
-            newX,newY = x,y
+                x, y = self.getPosition()
+                newX, newY = x, y
 
-            if move == "w" and x > 0:
-                newX -= 1
-            elif move == "s" and x < grid_size - 1:
-                newX += 1
-            elif move == "a" and y > 0:
-                newY -= 1
-            elif move == "d" and y < grid_size - 1:
-                newY += 1
+                if move == "w" and x > 0:
+                    newX -= 1
+                elif move == "s" and x < grid_size - 1:
+                    newX += 1
+                elif move == "a" and y > 0:
+                    newY -= 1
+                elif move == "d" and y < grid_size - 1:
+                    newY += 1
+                else:
+                    continue
 
-            collided_obj = check_collision(newX,newY, currentPlace)
-            if collided_obj:
-                if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
-                    print("Collide with object: ", collided_obj.name)
-                    self.setPosition(newX, newY)
-                    collided_obj.interact()
-            else:
-                update_queue.put((self, newX, newY))
-                self.setPosition(newX, newY)      
-
+                collided_obj = check_collision(newX, newY, currentPlace)
+                if collided_obj:
+                    if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
+                        print("Collide with object: ", collided_obj.name)
+                        self.setPosition(newX, newY)
+                        collided_obj.interact()
+                else:
+                    self.setPosition(newX, newY)      
+            time.sleep(0.05)  # Add a small delay to prevent too rapid movement
+    
     def youded(self):
         global running
         running = False
@@ -208,11 +207,11 @@ class Player(gameObject):
             print()
         exit()
 
-    def interact(self ):
+    def interact(self):
         player.youded()
 
 class Enemy(gameObject):
-    def __init__(self, x, y, name, emoji, place, collision,health):
+    def __init__(self, x, y, name, emoji, place, collision, health):
         super().__init__(x, y, name, emoji, place, collision, sortlayer=2)
         self.health = health
     rörelse_riktning = 1
@@ -220,20 +219,20 @@ class Enemy(gameObject):
        
         newY =  self.y + self.rörelse_riktning
 
-        collided_obj = check_collision(self.x,newY, currentPlace)
-        if collided_obj:
-            if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
-                print("Collide with object: ", collided_obj.name)
-                self.setPosition(self.x, newY)
-                collided_obj.interact()
-        else:
-            self.setPosition(self.x, newY)    
-        if self.y == 0 or self.y == grid_size - 1:
-            # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
-            self.rörelse_riktning *= -1
-        # Additional enemy-specific attributes or methods can be added here
-            
-        time.sleep(framerate)
+            collided_obj = check_collision(self.x, newY, currentPlace)
+            if collided_obj:
+                if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
+                    print("Collide with object: ", collided_obj.name)
+                    self.setPosition(self.x, newY)
+                    collided_obj.interact()
+            else:
+                self.setPosition(self.x, newY)    
+            if self.y == 0 or self.y == grid_size - 1:
+                # Ändra rörelseriktningen för att få objektet att gå åt motsatt håll
+                self.rörelse_riktning *= -1
+            # Additional enemy-specific attributes or methods can be added here
+              
+            time.sleep(framerate)
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
@@ -244,40 +243,41 @@ class Enemy(gameObject):
         self.emoji = self.deadEmoji
         self.can_collide = False
 
-    def interact(self ):
+    def interact(self):
         player.youded()
 
 # Checks the main object if there is one and returns.
-def check_collision(x,y, place):
+def check_collision(x, y, place):
     for obj in place.getObjects():
         if obj.getPosition() == [x, y]:
             return obj
     return None
 
 def print_grid():
-    print("\n" * 10)
-    for i in range(grid_size):
-        for j in range(grid_size):
-            # Initialize variables to track the object with the highest sort layer
-            highest_sort_layer_obj = None
-            highest_sort_layer = float('-inf')  # Initialize with negative infinity
-            
-            # Loop through all game objects in the current place
-            for currentObj in currentPlace.objects:
-                if [i, j] == currentObj.getPosition():
-                    if currentObj.sortlayer > highest_sort_layer:
-                        highest_sort_layer = currentObj.sortlayer
-                        highest_sort_layer_obj = currentObj
-            
-            if highest_sort_layer_obj:
-                print(highest_sort_layer_obj.emoji, end=" ")  # Print the emoji of the object with the highest sort layer
-            else:
-                print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
-        print()
+    global running
+    while running:
+        print("\n" * 10)
+        for i in range(grid_size):
+            for j in range(grid_size):
+                # Initialize variables to track the object with the highest sort layer
+                highest_sort_layer_obj = None
+                highest_sort_layer = float('-inf')  # Initialize with negative infinity
+                
+                # Loop through all game objects in the current place
+                for currentObj in currentPlace.objects:
+                    if [i, j] == currentObj.getPosition():
+                        if currentObj.sortlayer > highest_sort_layer:
+                            highest_sort_layer = currentObj.sortlayer
+                            highest_sort_layer_obj = currentObj
+                
+                if highest_sort_layer_obj:
+                    print(highest_sort_layer_obj.emoji, end=" ")  # Print the emoji of the object with the highest sort layer
+                else:
+                    print(currentPlace.emoji, end=" ")  # Print the emoji of the current place if no object is found
+            print()
+        time.sleep(0.1)  # Add a small delay for smoother grid printing
 
-    time.sleep(1/framerate)
-
-def animate_text(string, delay = textDelay):
+def animate_text(string, delay=textDelay):
     for char in string:
         print(char, end='', flush=True) 
         time.sleep(delay) 
@@ -290,11 +290,11 @@ places = {
 
 currentPlace = places["house"]
 
-enemy = Enemy(3, 3, "monkey", "🦧", places["house"],True,3)
-player = Player(4, 5, "player", "🈸", places["house"],True,10)
+enemy = Enemy(3, 3, "monkey", "🦧", places["house"], True, 3)
+player = Player(4, 5, "player", "🈸", places["house"], True, 10)
 
-ye = [[0,0], [8,0]]
-#obstacles = Obstacles("obj", "❗", ye, places["house"], True, 1)
+ye = [[0, 0], [8, 0]]
+obstacles = Obstacles("obj", "❗", ye, places["house"], True, 1)
 
 running = True
 
@@ -302,14 +302,7 @@ def main():
     global running
     animate_text("Welcome to the game!", textDelay)
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
-    while True:
-        if enemy.isactive:
-            enemy.monkey_run()
-        global cutscene
-        global kingCow
-        print_grid()
-    
-    """
+
     print_thread = threading.Thread(target=print_grid)
     input_thread = threading.Thread(target=player.move_player)
     monkey_thread = threading.Thread(target=enemy.monkey_run)
@@ -321,7 +314,14 @@ def main():
     input_thread.join()
     running = False
     print_thread.join()
-    monkey_thread.join()"""
-    
+    monkey_thread.join()
+    obstacles_thread.join()
+
+def move_obstacles():
+    global running
+    while running:
+        obstacles.move_objects(0, 1)
+        time.sleep(framerate)
+
 if __name__ == "__main__":
     main()

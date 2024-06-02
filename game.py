@@ -739,7 +739,6 @@ def main():
         for cow in cow_list:
             cow.cow_walk()
         print_grid()
-
 if __name__ == "__main__":
     main()
 
