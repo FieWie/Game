@@ -111,6 +111,7 @@ class GameObjects:
                 for y in range(min(y1, y2), max(y1, y2) + 1):
                     path.append([x, y])
         return path
+    
 
 class Path(GameObjects):
     def __init__(self, name, path_emoji, bridge_emoji, nodes, place, can_collide, layer):
@@ -133,16 +134,30 @@ class Path(GameObjects):
             block = gameObject(block[0], block[1], "path", emoji, self.place, self.can_collide, self.layer)
         return path
 
-class Spike(GameObjects):
-    def __init__(self, name, emoji, num_spikes, place, can_collide, layer, grid_size):
+class Spike(gameObject):
+    isdeadly = False
+    def __init__(self, x, y, name, emoji, place, collision, sortlayer =1):
+        super().__init__(x, y, name, emoji, place, collision, sortlayer)
+    
+    def interact(self):
+        if self.isdeadly:
+            player.youded()
+        
+class SpikeHandler:
+    gameObjects = []
+    def __init__(self, name, emoji, num_spikes, place, can_collide, layer):
+        self.name = name
+        self.emoji = emoji
         self.num_spikes = num_spikes
-        self.grid_size = grid_size
-        super().__init__(name, emoji, [], place, can_collide, layer)
+        self.place = place
+        self.can_collide = can_collide
+        self.layer = layer
+        self.spawn_objects()
 
     def spawn_objects(self):
-        coordinates = generate_random_coordinates(self.num_spikes, self.grid_size)
+        coordinates = generate_random_coordinates(self.num_spikes, grid_size)
         for coord in coordinates:
-            block = gameObject(coord[0], coord[1], self.name, self.emoji, self.place, self.can_collide, self.layer)
+            block = Spike(coord[0], coord[1], self.name, self.emoji, self.place, self.can_collide, self.layer)
             self.gameObjects.append(block)
 
     def Print_spike(self):
@@ -155,7 +170,9 @@ class Spike(GameObjects):
             time.sleep(0.3)
         
         for obj in self.gameObjects:
-            obj.emoji = "⬜"  # Turn red blocks to white
+            obj.emoji = "⬜"  # Turn red blocks to white'
+            x,y = obj.getPosition()
+            obj.isdeadly = True
         time.sleep(5)
 
         for obj in self.gameObjects:
@@ -176,30 +193,7 @@ class cow_attack(GameObjects):
 def convertTuple(tup):
     str = "".join(tup)
     return str
-    def move_objects(self):
-        global running
-        while running:
-            for obj in self.gameObjects:
-                x, y = obj.getPosition()
-                newX = x + self.directionX
-                newY = y + self.directionY
 
-                # Check if the lazer object has touched the left wall
-                if newY < 0:
-                    # Remove all objects from the place
-                    time.sleep(1)
-                    for obj_to_remove in self.gameObjects:
-                        obj_to_remove.deleteObject()
-                        
-                obj.setPosition(newX, newY)
-
-                collided_obj = check_collision(newX, newY, currentPlace)
-                if collided_obj:
-                    if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
-                        collided_obj.interact()
-
-                
-            time.sleep(1/self.speed)
 
 class Player(gameObject):
     has_sword = False
@@ -345,7 +339,7 @@ currentPlace = places["house"]
 
 enemy = Enemy(0, 3, "monkey", "🦧", places["house"], True, 3)
 player = Player(4, 5, "player", "🈸", places["house"], True, 10)
-spike = Spike("spike", "🟥", 10, places["house"], True, 1, grid_size)
+spike = SpikeHandler("spike", "🟥", 10, places["house"], True, 1)
 
 running = True
 
