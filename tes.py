@@ -1,13 +1,14 @@
-from asyncio.constants import ACCEPT_RETRY_DELAY
 import threading
 import time
 import msvcrt
 import os
 import random
 
+from numpy import delete
+
 grid_size = 9
 textDelay = .03
-framerate = 60
+framerate = 1
 
 class Place:
     def __init__(self, name, description, player_start, emoji):
@@ -19,7 +20,7 @@ class Place:
 
     def GetName(self):
         return self.name
-    
+
     def addObject(self, obj):
         self.objects.append(obj)
 
@@ -43,7 +44,6 @@ class gameObject:
         self.speed = speed
         self.sortlayer = sortlayer
         self.deadEmoji = deadEmoji
-
         place.addObject(self)
 
     def getPosition(self):
@@ -59,7 +59,7 @@ class gameObject:
     def deleteObject(self):
         if self.place:
             self.place.removeObject(self)
-            self.place = None
+        self.place = None
 
     def isInsideOfScreen(self):
         return 0 <= self.x < grid_size and 0 <= self.y < grid_size
@@ -108,7 +108,6 @@ class GameObjects:
                 for y in range(min(y1, y2), max(y1, y2) + 1):
                     path.append([x, y])
         return path
-    
 
 class Path(GameObjects):
     def __init__(self, name, path_emoji, bridge_emoji, nodes, place, can_collide, layer):
@@ -133,13 +132,14 @@ class Path(GameObjects):
 
 class Spike(gameObject):
     isdeadly = False
-    def __init__(self, x, y, name, emoji, place, collision, sortlayer =1):
+
+    def __init__(self, x, y, name, emoji, place, collision, sortlayer=1):
         super().__init__(x, y, name, emoji, place, collision, sortlayer)
-    
+
     def interact(self):
         if self.isdeadly:
             player.youded()
-        
+
 class SpikeHandler:
     gameObjects = []
 
@@ -150,7 +150,6 @@ class SpikeHandler:
         self.place = place
         self.can_collide = can_collide
         self.layer = layer
-        self.thread = None
 
     def spawn_objects(self):
         coordinates = generate_random_coordinates(self.num_spikes, grid_size)
@@ -171,19 +170,13 @@ class SpikeHandler:
             for obj in self.gameObjects:
                 obj.emoji = "⬛"  # Empty block
             time.sleep(0.3)
-        
         for obj in self.gameObjects:
             obj.emoji = "⬜"  # Turn red blocks to white
             x, y = obj.getPosition()
             obj.isdeadly = True
         time.sleep(5)
-
         for obj in self.gameObjects:
             obj.deleteObject()  # Remove white blocks
-
-    def stop(self):
-        if self.thread and self.thread.is_alive():
-            self.thread.join()
 
 class Lazer(GameObjects):
     def __init__(self, name, emoji, nodes, place, directionX, directionY, speed, can_collide, layer):
@@ -191,7 +184,6 @@ class Lazer(GameObjects):
         self.directionX = directionX
         self.directionY = directionY
         self.speed = speed
-        self.thread = None
 
     def move_objects(self):
         self.thread = threading.Thread(target=self._move_lazers)
@@ -204,7 +196,6 @@ class Lazer(GameObjects):
                 x, y = obj.getPosition()
                 newX = x + self.directionX
                 newY = y + self.directionY
-
                 # Check if the lazer object has touched the left wall
                 if newY < 0:
                     # Remove all objects from the place
@@ -212,43 +203,18 @@ class Lazer(GameObjects):
                     for obj_to_remove in self.gameObjects:
                         obj_to_remove.deleteObject()
                     return
-
                 obj.setPosition(newX, newY)
-
                 collided_obj = check_collision(newX, newY, currentPlace)
                 if collided_obj:
                     if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
                         collided_obj.interact()
-
             time.sleep(1/self.speed)
-
-    def stop(self):
-        if self.thread and self.thread.is_alive():
-            self.thread.join()
-
-"""class SequenceHandler:
-
-    def __init__(self):
-        self.sequences = []
-        self.current_sequence = None
-        self.sequence_thread = None
-
-    def add_sequence(self, sequence):
-        pass
-    def start_sequence(self, sequence_index):
-        pass
-    def stop_sequence(self):
-        pass
-
-    def is_sequence_running(self):
-        pass
-"""
-
 
 class Action:
     def __init__(self, action):
         self.thread = None
         self.action = action
+        self.thread = None
 
     def run_action(self):
         self.thread = threading.Thread(target=self.execute)
@@ -273,44 +239,33 @@ class SequenceStep:
         for action in self.actions:
             action.stop_action()
 
+    def wait_for_completion(self):
+        for action in self.actions:
+            if action.thread and action.thread.is_alive():
+                print("done")
+                action.thread.join()
+
 class Sequence:
-    def __init__(self, name, steps = SequenceStep, delay_after=0.5):
+    def __init__(self, name, steps, delay_after=0.5):
         self.name = name
         self.steps = steps
         self.delay_after = delay_after
-        self.threads = []
         self.current_step = 0
 
     def run(self):
-        print("run")
-        step = self.steps[self.current_step]
-        step_threads = []
-        for action in step.actions:
-            action.run_action()
-            step_threads.append(action.thread)
-        self.threads.append(step_threads)
-        time.sleep(self.delay_after)
+        while self.current_step < len(self.steps):
+            step = self.steps[self.current_step]
+            step.run_action()
+            print("Waiting step:", self.current_step)
+            step.wait_for_completion()
+            time.sleep(self.delay_after)
+            self.current_step += 1
+        print("Steps complete")
+        exit()
     
-    def is_complete(self, action):
-        self.steps[self.current_step].actions.remove(action)
-        if len(self.steps[self.current_step].actions) <=0:
-            self.next_step()
-
-    def next_step(self):
-        self.current_step +=1
-        if self.steps[self.current_step] != None:
-            self.stop()
-            self.run()
-        else:
-            self.stop()
-
     def stop(self):
-        for step_threads in self.threads:
-            for thread in step_threads:
-                if thread and thread.is_alive():
-                    thread.join()
-
-
+        for step in self.steps:
+            step.stop_action()
 
 def convertTuple(tup):
     str = "".join(tup)
@@ -332,10 +287,8 @@ class Player(gameObject):
                     print("Exiting the game.")
                     running = False
                     return
-
                 x, y = self.getPosition()
                 newX, newY = x, y
-
                 if move == "w" and x > 0:
                     newX -= 1
                 elif move == "s" and x < grid_size - 1:
@@ -346,7 +299,6 @@ class Player(gameObject):
                     newY += 1
                 else:
                     continue
-
                 collided_obj = check_collision(newX, newY, currentPlace)
                 if collided_obj:
                     if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
@@ -372,18 +324,16 @@ class Player(gameObject):
     def interact(self):
         self.youded()
 
-
 class Enemy(gameObject):
     def __init__(self, x, y, name, emoji, place, collision, health):
         super().__init__(x, y, name, emoji, place, collision, sortlayer=2)
         self.health = health
-    rörelse_riktning = 1
+        self.rörelse_riktning = 1
 
     def monkey_run(self):
         global running
         while running:
             newY = self.y + self.rörelse_riktning
-
             collided_obj = check_collision(self.x, newY, currentPlace)
             if collided_obj:
                 if isinstance(collided_obj, gameObject) and collided_obj.can_collide:
@@ -391,12 +341,12 @@ class Enemy(gameObject):
                     self.setPosition(self.x, newY)
                     collided_obj.interact()
             else:
-                self.setPosition(self.x, newY)    
+                self.setPosition(self.x, newY)
             if self.y == 0 or self.y == grid_size - 1:
                 # Change the movement direction to make the object go in the opposite direction
                 self.rörelse_riktning *= -1
             time.sleep(framerate)
-            
+
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
@@ -429,13 +379,12 @@ def print_grid():
                         if currentObj.sortlayer > highest_sort_layer:
                             highest_sort_layer = currentObj.sortlayer
                             highest_sort_layer_obj = currentObj
-
                 if highest_sort_layer_obj:
                     print(highest_sort_layer_obj.emoji, end=" ")
                 else:
                     print(currentPlace.emoji, end=" ")
             print()
-        time.sleep(0.1)
+        time.sleep(1/framerate)
 
 def animate_text(string, delay=textDelay):
     for char in string:
@@ -457,45 +406,10 @@ def generate_random_coordinates(num_coordinates, grid_size):
     return list(coordinates)
 
 currentPlace = places["house"]
-
 enemy = Enemy(0, 3, "monkey", "🦧", places["house"], True, 3)
 player = Player(4, 5, "player", "🈸", places["house"], True, 10)
 
-"""
-
-
-define actions:
-ye = [[4, 10], [5, 18]]
-Lazerhorizontal = Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1, event2, threading.Event())
-ye = [[4, 10], [5, 18]]
-lazervertical = Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1, event2, threading.Event())
-spike = SpikeHandler("spike", "🟥", 12, places["house"], True, 1, event1, event2)
-
-List with different actions (every list inside is one sequence step):
-sequence1 = [[Lazerhorizontal,lazervertical], [spikes]]
-
-# Create a sequence handler
-sequence_handler = SequenceHandler()
-sequence_handler.add_sequence(spike_sequence)
-sequence_handler.add_sequence(lazer_sequence)
-"""
-
-"""sequence1 = Sequence( "sequence1", None)
-
-spike =  SequenceStep(SpikeHandler("spike", "🟥", 12, places["house"], True, 1).Print_spike)
-ye = [[1, 10], [2, 18]]
-lazers1 = SequenceStep(Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1).move_objects)
-ye = [[7, 10], [8, 18]]
-lazers2 = SequenceStep(Lazer("obj", "🧧", ye, places["house"], 0, -1, 4, True, 1).move_objects)
- 
-
-
-
-sequence1.steps =[
-    [spike],
-    [lazers1, lazers2]
-    ]"""
-
+# Define actions
 spike_handler = SpikeHandler("spike", "🟥", 12, places["house"], True, 1)
 spike_action = Action(spike_handler.Print_spike)
 
@@ -518,25 +432,19 @@ def main():
     global running
     running = True
     print("Instructions: Move using 'w', 'a', 's', 'd'. Type 'q' to quit.")
-
     print_thread = threading.Thread(target=print_grid)
     input_thread = threading.Thread(target=player.move_player)
     monkey_thread = threading.Thread(target=enemy.monkey_run)
-
     print_thread.start()
     input_thread.start()
     monkey_thread.start()
-
     sequence1.run()
-
     try:
         while running:
             time.sleep(0.1)
     except KeyboardInterrupt:
         running = False
-
     sequence1.stop()
-
     print_thread.join()
     input_thread.join()
     monkey_thread.join()
